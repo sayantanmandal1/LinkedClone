@@ -21,7 +21,6 @@ const userSchema = new Schema<UserDocument>(
     email: {
       type: String,
       required: [true, 'Email is required'],
-      unique: true,
       lowercase: true,
       trim: true,
       match: [
@@ -48,8 +47,8 @@ const userSchema = new Schema<UserDocument>(
   }
 );
 
-// Index for faster email lookups
-userSchema.index({ email: 1 });
+// Create unique index for email
+userSchema.index({ email: 1 }, { unique: true });
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

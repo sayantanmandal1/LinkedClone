@@ -20,7 +20,7 @@ connectDB();
 if (isProduction) {
   // Trust proxy for production deployments
   app.set('trust proxy', 1);
-  
+
   // Security headers
   app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -36,10 +36,15 @@ if (isProduction) {
 const corsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     const allowedOrigins = process.env.FRONTEND_URL?.split(',') || ['http://localhost:3000'];
-    
+
     // Allow requests with no origin (mobile apps, etc.)
     if (!origin) return callback(null, true);
-    
+
+    // In development, allow localhost with any port
+    if (!isProduction && origin?.includes('localhost')) {
+      return callback(null, true);
+    }
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -55,9 +60,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Body parsing middleware with size limits
-app.use(express.json({ 
+app.use(express.json({
   limit: isProduction ? '5mb' : '10mb',
-  verify: (req, res, buf) => {
+  verify: (_req, _res, buf) => {
     // Verify JSON payload in production
     if (isProduction && buf.length > 5 * 1024 * 1024) {
       throw new Error('Request entity too large');
@@ -65,9 +70,9 @@ app.use(express.json({
   }
 }));
 
-app.use(express.urlencoded({ 
-  extended: true, 
-  limit: isProduction ? '5mb' : '10mb' 
+app.use(express.urlencoded({
+  extended: true,
+  limit: isProduction ? '5mb' : '10mb'
 }));
 
 // Serve static files from uploads directory
@@ -75,8 +80,8 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     message: 'LinkedIn Clone API is running',
     timestamp: new Date().toISOString()
   });
