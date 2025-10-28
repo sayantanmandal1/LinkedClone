@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:with-shared": "cd ../shared && npm ci && npm run build && cd ../frontend && npm run build",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit"

@@ -1,18 +1,10 @@
 {
   "version": 2,
-  "name": "linkedin-clone",
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "frontend/$1"
-    }
-  ],
+  "name": "linkedin-clone-frontend",
+  "buildCommand": "cd shared && npm ci && npm run build && cd ../frontend && npm ci && npm run build",
+  "outputDirectory": "frontend/.next",
+  "installCommand": "npm ci",
+  "framework": "nextjs",
   "env": {
     "NODE_ENV": "production"
   },
@@ -21,6 +13,26 @@
       "maxDuration": 30
     }
   },
-  "regions": ["iad1"],
-  "framework": "nextjs"
+  "regions": [
+    "iad1"
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
 }

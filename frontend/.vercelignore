@@ -1,0 +1,9 @@
+# Don't ignore shared package
+!../shared
+../shared/node_modules
+../shared/src
+
+# Ignore other directories
+../backend
+../.git
+../node_modules

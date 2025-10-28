@@ -3,14 +3,8 @@ import type { NextConfig } from "next";
 const isProduction = process.env.NODE_ENV === 'production';
 
 const nextConfig: NextConfig = {
-  // Set turbopack root to silence workspace warnings
-  turbopack: {
-    root: process.cwd(),
-  },
-  
-  // Enable experimental features
+  // Enable experimental features for monorepo
   experimental: {
-    optimizePackageImports: ['@linkedin-clone/shared'],
     externalDir: true,
   },
   
@@ -19,9 +13,19 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
   
-  // Production optimizations
+  // Webpack configuration for monorepo
+  webpack: (config, { isServer }) => {
+    // Handle shared package imports
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@linkedin-clone/shared': require.resolve('../shared/dist/index.js'),
+    };
+    
+    return config;
+  },
+  
+  // Basic production optimizations
   ...(isProduction && {
-    output: 'standalone',
     compress: true,
     poweredByHeader: false,
     generateEtags: true,
