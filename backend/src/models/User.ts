@@ -34,6 +34,18 @@ const userSchema = new Schema<UserDocument>(
       minlength: [6, 'Password must be at least 6 characters long'],
       select: false, // Don't include password in queries by default
     },
+    profilePicture: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: function(v: string) {
+          if (!v) return true; // Optional field
+          // Basic URL validation
+          return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(v);
+        },
+        message: 'Profile picture must be a valid HTTP/HTTPS URL ending with jpg, jpeg, png, gif, or webp',
+      },
+    },
   },
   {
     timestamps: true,

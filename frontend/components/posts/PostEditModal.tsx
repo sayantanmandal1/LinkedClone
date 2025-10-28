@@ -14,7 +14,7 @@ interface PostEditModalProps {
 export default function PostEditModal({ post, onClose, onPostUpdated }: PostEditModalProps) {
   const [content, setContent] = useState(post.content);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(post.image || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(post.imageUrl || null);
   const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +93,7 @@ export default function PostEditModal({ post, onClose, onPostUpdated }: PostEdit
     setError(null);
 
     try {
-      let imageUrl: string | undefined = post.image;
+      let imageUrl: string | undefined = post.imageUrl;
 
       // Handle image changes
       if (imageFile) {
@@ -110,7 +110,7 @@ export default function PostEditModal({ post, onClose, onPostUpdated }: PostEdit
       // Update post
       const response = await postsApi.updatePost(post._id, {
         content: content.trim(),
-        image: imageUrl,
+        imageUrl: imageUrl,
       });
 
       if (response.success && response.post) {

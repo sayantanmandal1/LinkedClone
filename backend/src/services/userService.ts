@@ -171,4 +171,57 @@ export class UserService {
       };
     }
   }
+
+  /**
+   * Update user's profile picture
+   */
+  static async updateProfilePicture(
+    userId: string, 
+    profilePictureUrl: string
+  ): Promise<{ success: boolean; user?: IUser; message?: string; code?: string }> {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return {
+          success: false,
+          message: 'Invalid user ID',
+          code: ERROR_CODES.VALIDATION_ERROR,
+        };
+      }
+
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { profilePicture: profilePictureUrl },
+        { new: true, runValidators: true }
+      );
+
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          code: ERROR_CODES.NOT_FOUND_ERROR,
+        };
+      }
+
+      const userObject: IUser = {
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+
+      return {
+        success: true,
+        user: userObject,
+      };
+    } catch (error) {
+      console.error('Update profile picture error:', error);
+      return {
+        success: false,
+        message: 'Failed to update profile picture',
+        code: ERROR_CODES.SERVER_ERROR,
+      };
+    }
+  }
 }

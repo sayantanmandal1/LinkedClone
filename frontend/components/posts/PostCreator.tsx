@@ -7,6 +7,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { postsApi, uploadApi } from '@/lib/api';
 import { ErrorHandler } from '@/lib/errorHandler';
 import Button from '@/components/ui/Button';
+import Avatar from '@/components/ui/Avatar';
 import { cn } from '@/lib/utils';
 
 interface PostCreatorProps {
@@ -96,7 +97,7 @@ export default function PostCreator({ onPostCreated, className }: PostCreatorPro
       // Create post
       const response = await postsApi.createPost({
         content: content.trim(),
-        image: imageUrl,
+        imageUrl: imageUrl,
       });
 
       if (!response.success) {
@@ -134,11 +135,11 @@ export default function PostCreator({ onPostCreated, className }: PostCreatorPro
       <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         {/* User info */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 rounded-full flex items-center justify-center">
-            <span className="text-white font-medium text-sm sm:text-base">
-              {user.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <Avatar
+            name={user.name}
+            src={user.profilePicture}
+            size="lg"
+          />
           <div>
             <p className="font-medium text-gray-900 text-sm sm:text-base">{user.name}</p>
           </div>

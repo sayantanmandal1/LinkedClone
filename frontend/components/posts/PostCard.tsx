@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { formatRelativeTime, cn } from '@/lib/utils';
 import PostActions from '@/components/posts/PostActions';
 import CommentSection from '@/components/posts/CommentSection';
+import Avatar from '@/components/ui/Avatar';
 
 interface PostCardProps {
   post: Post;
@@ -58,13 +59,13 @@ export default function PostCard({
       <div className="p-3 sm:p-4 pb-3">
         <div className="flex items-start space-x-3">
           {/* Author avatar */}
-          <Link 
-            href={`/profile/${localPost.author._id}`}
-            className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-600 rounded-full flex items-center justify-center shrink-0 hover:bg-primary-700 transition-colors touch-manipulation"
-          >
-            <span className="text-white font-medium text-sm sm:text-base">
-              {localPost.author.name.charAt(0).toUpperCase()}
-            </span>
+          <Link href={`/profile/${localPost.author._id}`}>
+            <Avatar
+              name={localPost.author.name}
+              src={localPost.author.profilePicture}
+              size="lg"
+              className="hover:border-primary-400 transition-colors touch-manipulation"
+            />
           </Link>
           
           {/* Author info and timestamp */}
@@ -97,26 +98,16 @@ export default function PostCard({
       </div>
 
       {/* Post image */}
-      {localPost.image && (
+      {localPost.imageUrl && (
         <div className="px-3 sm:px-4 pb-3">
-          <div className="text-xs text-gray-500 mb-2">
-            Image URL: {localPost.image}
-          </div>
           <img
-            src={localPost.image}
+            src={localPost.imageUrl}
             alt="Post image"
             className="w-full max-h-64 sm:max-h-96 object-cover rounded-lg border cursor-pointer hover:opacity-95 transition-opacity"
             loading="lazy"
-            onError={(e) => {
-              console.error('Image failed to load:', localPost.image);
-              e.currentTarget.style.display = 'none';
-            }}
-            onLoad={() => {
-              console.log('Image loaded successfully:', localPost.image);
-            }}
             onClick={() => {
               // Open image in new tab on click for better mobile viewing
-              window.open(localPost.image, '_blank');
+              window.open(localPost.imageUrl, '_blank');
             }}
           />
         </div>

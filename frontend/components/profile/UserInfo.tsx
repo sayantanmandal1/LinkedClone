@@ -1,12 +1,23 @@
 'use client';
 
+import { useState } from 'react';
 import { User } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { uploadApi, usersApi } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
+import Avatar from '@/components/ui/Avatar';
 
 interface UserInfoProps {
   user: User;
 }
 
 export default function UserInfo({ user }: UserInfoProps) {
+  const { user: currentUser, refreshUser } = useAuth();
+  const { showSuccess, showError } = useToast();
+  const [uploading, setUploading] = useState(false);
+
+  const isOwnProfile = currentUser?._id === user._id;
+
   // Format join date
   const joinDate = new Date(user.createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -19,15 +30,45 @@ export default function UserInfo({ user }: UserInfoProps) {
     (new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)
   );
 
+  const handleProfilePictureChange = async (file: File) => {
+    if (!isOwnProfile) return;
+
+    setUploading(true);
+    try {
+      // Upload the image
+      const uploadResponse = await uploadApi.uploadImage(file);
+      if (uploadResponse.success && uploadResponse.data) {
+        // Update user profile with new image URL
+        await usersApi.updateProfilePicture(uploadResponse.data.url);
+        showSuccess('Profile picture updated successfully!');
+        refreshUser();
+      }
+    } catch (error) {
+      showError('Failed to update profile picture');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
           {/* Profile Avatar */}
           <div className="shrink-0 self-center sm:self-start">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary-500 flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
+            <Avatar
+              name={user.name}
+              src={user.profilePicture}
+              size="xl"
+              editable={isOwnProfile && !uploading}
+              onImageChange={handleProfilePictureChange}
+              className={uploading ? 'opacity-50' : ''}
+            />
+            {uploading && (
+              <div className="text-xs text-center mt-2 text-gray-600">
+                Uploading...
+              </div>
+            )}
           </div>
 
           {/* User Details */}

@@ -2,12 +2,11 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import Avatar from '@/components/ui/Avatar';
+import { User } from '@/lib/types';
 
 interface NavbarProps {
-  user?: {
-    name: string;
-    email: string;
-  } | null;
+  user?: User | null;
   onLogout?: () => void;
 }
 
@@ -71,9 +70,11 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                     aria-expanded={isMenuOpen}
                     aria-haspopup="true"
                   >
-                    <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-medium hover:bg-primary-600 transition-colors">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
+                    <Avatar
+                      name={user.name}
+                      src={user.profilePicture}
+                      size="sm"
+                    />
                   </button>
 
                   {isMenuOpen && (

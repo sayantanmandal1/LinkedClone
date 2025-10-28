@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { UserService } from '../services/userService';
-import { optionalAuth } from '../middleware/auth';
+import { optionalAuth, authenticate } from '../middleware/auth';
 import { HTTP_STATUS } from '../../../shared/src/constants';
 import { PaginationParams } from '../../../shared/src/types/api';
 
@@ -91,6 +91,52 @@ router.get('/:id/posts', optionalAuth, async (req: Request, res: Response) => {
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Failed to retrieve user posts',
+      code: 'SERVER_ERROR',
+    });
+  }
+});
+
+/**
+ * PUT /api/users/profile-picture
+ * Update current user's profile picture
+ * Requires authentication
+ */
+router.put('/profile-picture', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { profilePictureUrl } = req.body;
+    const userId = req.user!._id.toString();
+
+    if (!profilePictureUrl) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: 'Profile picture URL is required',
+      });
+    }
+
+    const result = await UserService.updateProfilePicture(userId, profilePictureUrl);
+    
+    if (!result.success) {
+      const statusCode = result.code === 'NOT_FOUND_ERROR' 
+        ? HTTP_STATUS.NOT_FOUND 
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+        
+      return res.status(statusCode).json({
+        success: false,
+        message: result.message,
+        code: result.code,
+      });
+    }
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: result.user,
+      message: 'Profile picture updated successfully',
+    });
+  } catch (error) {
+    console.error('Update profile picture route error:', error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: 'Failed to update profile picture',
       code: 'SERVER_ERROR',
     });
   }

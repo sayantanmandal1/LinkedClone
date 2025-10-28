@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { postsApi } from '@/lib/api';
 import { formatRelativeTime } from '@/lib/utils';
 import Button from '@/components/ui/Button';
+import Avatar from '@/components/ui/Avatar';
 
 interface CommentSectionProps {
   post: Post;
@@ -84,13 +85,13 @@ export default function CommentSection({ post, onCommentAdded }: CommentSectionP
           {comments.map((comment) => (
             <div key={comment._id} className="flex space-x-2 sm:space-x-3">
               {/* Commenter avatar */}
-              <Link 
-                href={`/profile/${comment.author._id}`}
-                className="w-7 h-7 sm:w-8 sm:h-8 bg-primary-600 rounded-full flex items-center justify-center shrink-0 hover:bg-primary-700 transition-colors touch-manipulation"
-              >
-                <span className="text-white font-medium text-xs">
-                  {comment.author.name.charAt(0).toUpperCase()}
-                </span>
+              <Link href={`/profile/${comment.author._id}`}>
+                <Avatar
+                  name={comment.author.name}
+                  src={comment.author.profilePicture}
+                  size="sm"
+                  className="hover:border-primary-400 transition-colors touch-manipulation"
+                />
               </Link>
               
               {/* Comment content */}
@@ -122,11 +123,11 @@ export default function CommentSection({ post, onCommentAdded }: CommentSectionP
         <div className="px-3 sm:px-4 py-3 border-t border-gray-200">
           <form onSubmit={handleSubmit} className="flex space-x-2 sm:space-x-3">
             {/* User avatar */}
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary-600 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-white font-medium text-xs">
-                {user.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
+            <Avatar
+              name={user.name}
+              src={user.profilePicture}
+              size="sm"
+            />
             
             {/* Comment input */}
             <div className="flex-1">
