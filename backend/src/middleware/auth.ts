@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { JwtUtils, JwtPayload } from '../utils/jwt';
 import { User, UserDocument } from '../models/User';
-import { HTTP_STATUS, ERROR_CODES } from '../../../shared/src/constants';
-import { ErrorResponse } from '../../../shared/src/types/api';
+import { HTTP_STATUS, ERROR_CODES, ErrorResponse } from '@linkedin-clone/shared';
 
 // Extend Express Request interface to include user
 declare global {

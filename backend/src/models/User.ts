@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { User as IUser } from '../../../shared/src/types/user';
+import { User as IUser } from '@linkedin-clone/shared';
 
 // Extend the User interface to include password and document methods
 export interface UserDocument extends Omit<IUser, '_id'>, Document {

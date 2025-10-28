@@ -1,9 +1,6 @@
 import { User } from '../models/User';
 import { Post } from '../models/Post';
-import { User as IUser } from '../../../shared/src/types/user';
-import { Post as IPost } from '../../../shared/src/types/post';
-import { ERROR_CODES } from '../../../shared/src/constants';
-import { PaginationParams } from '../../../shared/src/types/api';
+import { User as IUser, Post as IPost, ERROR_CODES, PaginationParams } from '@linkedin-clone/shared';
 import mongoose from 'mongoose';
 
 export interface UserProfileResponse {

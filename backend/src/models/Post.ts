@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { Post as IPost } from '../../../shared/src/types/post';
-import { Comment } from '../../../shared/src/types/comment';
+import { Post as IPost, Comment } from '@linkedin-clone/shared';
 
 // Define the comment subdocument interface
 interface CommentSubdocument {

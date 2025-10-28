@@ -1,13 +1,13 @@
 import { User } from '../models/User';
 import { JwtUtils } from '../utils/jwt';
-import { validateUserRegistration } from '../../../shared/src/utils/validation';
 import { 
+  validateUserRegistration,
   CreateUserRequest, 
   LoginRequest, 
   AuthResponse,
-  User as IUser 
-} from '../../../shared/src/types/user';
-import { ERROR_CODES } from '../../../shared/src/constants';
+  User as IUser,
+  ERROR_CODES
+} from '@linkedin-clone/shared';
 
 export class AuthService {
   /**

@@ -1,9 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { AuthService } from '../services/authService';
 import { authenticate } from '../middleware/auth';
-import { HTTP_STATUS } from '../../../shared/src/constants';
-import { CreateUserRequest, LoginRequest, AuthResponse } from '../../../shared/src/types/user';
-import { ErrorResponse } from '../../../shared/src/types/api';
+import { HTTP_STATUS, CreateUserRequest, LoginRequest, AuthResponse, ErrorResponse } from '@linkedin-clone/shared';
 
 const router = Router();
 

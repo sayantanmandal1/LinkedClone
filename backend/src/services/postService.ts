@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { Post, PostDocument } from '../models/Post';
-import { CreatePostRequest, UpdatePostRequest } from '../../../shared/src/types/post';
+import { CreatePostRequest, UpdatePostRequest } from '@linkedin-clone/shared';
 
 export class PostService {
   /**
