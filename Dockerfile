@@ -14,27 +14,20 @@ RUN adduser -S nodejs -u 1001
 # Copy root package.json for workspace setup
 COPY package*.json ./
 
-# Copy shared package and build it first
+# Copy and build shared package first
 COPY shared/ ./shared/
 WORKDIR /app/shared
 RUN npm ci && npm run build
 
-# Switch to backend directory
+# Copy backend files
+WORKDIR /app
+COPY backend/ ./backend/
+
+# Install backend dependencies and build
 WORKDIR /app/backend
+RUN npm ci && npm run build
 
-# Copy backend package files
-COPY backend/package*.json ./
-
-# Install backend dependencies (including dev for building)
-RUN npm ci
-
-# Copy backend source code
-COPY backend/ ./
-
-# Build the backend application
-RUN npm run build
-
-# Clean up dev dependencies after build
+# Clean up dev dependencies
 RUN npm ci --only=production
 
 # Create uploads directory with proper permissions
