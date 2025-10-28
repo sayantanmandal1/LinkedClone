@@ -1,11 +1,11 @@
-import { Metadata } from 'next';
-import { ProfilePage } from '@/components/profile';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'User Profile - LinkedIn Clone',
-  description: 'View user profile and posts',
-};
+import { ProfilePage } from '@/components/profile';
+import { useParams } from 'next/navigation';
 
 export default function UserProfilePage() {
-  return <ProfilePage />;
+  const params = useParams();
+  const userId = params?.id as string;
+
+  return <ProfilePage userId={userId} />;
 }

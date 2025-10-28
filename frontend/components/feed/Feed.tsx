@@ -6,12 +6,12 @@ import { postsApi } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { ErrorHandler } from '@/lib/errorHandler';
 import PostCard from '@/components/posts/PostCard';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
+
 import { cn } from '@/lib/utils';
 
 interface FeedProps {
   className?: string;
-  onPostCreated?: () => void;
+  onPostCreated?: (refreshFn: () => void) => void;
 }
 
 export default function Feed({ className, onPostCreated }: FeedProps) {
@@ -107,11 +107,12 @@ export default function Feed({ className, onPostCreated }: FeedProps) {
     setPosts(prev => prev.filter(post => post._id !== deletedPostId));
   }, []);
 
-  // Handle new post created
-  const handlePostCreated = useCallback(() => {
-    refreshPosts();
-    onPostCreated?.();
-  }, [refreshPosts, onPostCreated]);
+  // Expose refresh function to parent
+  useEffect(() => {
+    if (onPostCreated) {
+      onPostCreated(refreshPosts);
+    }
+  }, [onPostCreated, refreshPosts]);
 
   // Set up intersection observer for infinite scroll
   useEffect(() => {

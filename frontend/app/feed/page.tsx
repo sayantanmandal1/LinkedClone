@@ -9,13 +9,17 @@ import { Feed } from '@/components/feed';
 
 export default function FeedPage() {
   const { user, logout } = useAuth();
-  const feedRef = useRef<{ refresh: () => void } | null>(null);
+  const feedRefreshRef = useRef<(() => void) | null>(null);
 
   const handlePostCreated = () => {
     // Refresh the feed when a new post is created
-    if (feedRef.current?.refresh) {
-      feedRef.current.refresh();
+    if (feedRefreshRef.current) {
+      feedRefreshRef.current();
     }
+  };
+
+  const setFeedRefresh = (refreshFn: () => void) => {
+    feedRefreshRef.current = refreshFn;
   };
 
   return (
@@ -26,7 +30,7 @@ export default function FeedPage() {
           <PostCreator onPostCreated={handlePostCreated} />
           
           {/* Main Feed */}
-          <Feed onPostCreated={handlePostCreated} />
+          <Feed onPostCreated={setFeedRefresh} />
         </div>
       </Layout>
     </ProtectedRoute>

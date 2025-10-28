@@ -99,11 +99,21 @@ export default function PostCard({
       {/* Post image */}
       {localPost.image && (
         <div className="px-3 sm:px-4 pb-3">
+          <div className="text-xs text-gray-500 mb-2">
+            Image URL: {localPost.image}
+          </div>
           <img
             src={localPost.image}
             alt="Post image"
             className="w-full max-h-64 sm:max-h-96 object-cover rounded-lg border cursor-pointer hover:opacity-95 transition-opacity"
             loading="lazy"
+            onError={(e) => {
+              console.error('Image failed to load:', localPost.image);
+              e.currentTarget.style.display = 'none';
+            }}
+            onLoad={() => {
+              console.log('Image loaded successfully:', localPost.image);
+            }}
             onClick={() => {
               // Open image in new tab on click for better mobile viewing
               window.open(localPost.image, '_blank');
