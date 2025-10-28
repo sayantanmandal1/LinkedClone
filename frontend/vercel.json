@@ -9,17 +9,14 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_API_URL": "@linkedin-clone-api-url"
-    }
-  },
   "functions": {
     "app/**/*.tsx": {
       "maxDuration": 30
     }
   },
-  "regions": ["iad1"],
+  "regions": [
+    "iad1"
+  ],
   "headers": [
     {
       "source": "/(.*)",
