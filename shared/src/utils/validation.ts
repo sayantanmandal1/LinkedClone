@@ -24,7 +24,8 @@ export const validateName = (name: string): boolean => {
   return trimmed.length >= VALIDATION_LIMITS.NAME_MIN && trimmed.length <= VALIDATION_LIMITS.NAME_MAX;
 };
 
-export const validateImageFile = (file: File): boolean => {
+// File validation for browser environments only
+export const validateImageFile = (file: { size: number; type: string }): boolean => {
   // Check file size
   if (file.size > VALIDATION_LIMITS.IMAGE_SIZE_MAX) {
     return false;
