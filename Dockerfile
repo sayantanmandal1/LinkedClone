@@ -17,7 +17,7 @@ COPY package*.json ./
 # Copy shared package and build it first
 COPY shared/ ./shared/
 WORKDIR /app/shared
-RUN npm ci --only=production && npm run build
+RUN npm ci && npm run build
 
 # Switch to backend directory
 WORKDIR /app/backend
@@ -25,14 +25,17 @@ WORKDIR /app/backend
 # Copy backend package files
 COPY backend/package*.json ./
 
-# Install backend dependencies
-RUN npm ci --only=production
+# Install backend dependencies (including dev for building)
+RUN npm ci
 
 # Copy backend source code
 COPY backend/ ./
 
 # Build the backend application
 RUN npm run build
+
+# Clean up dev dependencies after build
+RUN npm ci --only=production
 
 # Create uploads directory with proper permissions
 RUN mkdir -p uploads && chown -R nodejs:nodejs uploads
