@@ -1,15 +1,16 @@
 {
   "version": 2,
   "name": "linkedin-clone-frontend",
-  "buildCommand": "cd shared && npm ci && npm run build && cd ../frontend && npm ci && npm run build",
-  "outputDirectory": "frontend/.next",
-  "installCommand": "npm ci",
   "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm ci",
+  "devCommand": "npm run dev",
   "env": {
     "NODE_ENV": "production"
   },
   "functions": {
-    "frontend/app/**/*.tsx": {
+    "app/**/*.tsx": {
       "maxDuration": 30
     }
   },

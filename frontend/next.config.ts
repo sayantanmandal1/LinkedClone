@@ -3,28 +3,12 @@ import type { NextConfig } from "next";
 const isProduction = process.env.NODE_ENV === 'production';
 
 const nextConfig: NextConfig = {
-  // Enable experimental features for monorepo
-  experimental: {
-    externalDir: true,
-  },
-  
   // Environment variables
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
   
-  // Webpack configuration for monorepo
-  webpack: (config, { isServer }) => {
-    // Handle shared package imports
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@linkedin-clone/shared': require.resolve('../shared/dist/index.js'),
-    };
-    
-    return config;
-  },
-  
-  // Basic production optimizations
+  // Production optimizations
   ...(isProduction && {
     compress: true,
     poweredByHeader: false,
