@@ -41,8 +41,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
+      console.log('Refreshing user data...');
       const response = await authApi.getCurrentUser();
+      console.log('User refresh response:', response);
+      
       if (response.success && response.user) {
+        console.log('Setting user:', response.user);
         setUser(response.user);
       } else {
         // If the token is invalid, remove it
@@ -50,6 +54,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(null);
       }
     } catch (error) {
+      console.error('User refresh error:', error);
       // If there's an auth error, remove the token
       tokenManager.removeToken();
       setUser(null);

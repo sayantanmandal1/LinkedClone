@@ -105,6 +105,15 @@ export default function PostCard({
             alt="Post image"
             className="w-full max-h-64 sm:max-h-96 object-cover rounded-lg border cursor-pointer hover:opacity-95 transition-opacity"
             loading="lazy"
+            key={localPost.imageUrl} // Force re-render when imageUrl changes
+            onError={(e) => {
+              console.error('Failed to load post image:', localPost.imageUrl);
+              const target = e.currentTarget as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+            onLoad={() => {
+              console.log('Post image loaded successfully:', localPost.imageUrl);
+            }}
             onClick={() => {
               // Open image in new tab on click for better mobile viewing
               window.open(localPost.imageUrl, '_blank');

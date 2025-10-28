@@ -58,6 +58,7 @@ export default function Avatar({
       alt={alt || `${name}'s avatar`}
       className="w-full h-full object-cover"
       onError={handleImageError}
+      key={src} // Force re-render when src changes
     />
   ) : (
     <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-600">

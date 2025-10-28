@@ -35,15 +35,22 @@ export default function UserInfo({ user }: UserInfoProps) {
 
     setUploading(true);
     try {
+      console.log('Uploading profile picture...');
       // Upload the image
       const uploadResponse = await uploadApi.uploadImage(file);
+      console.log('Upload response:', uploadResponse);
+      
       if (uploadResponse.success && uploadResponse.data) {
+        console.log('Updating profile with URL:', uploadResponse.data.url);
         // Update user profile with new image URL
-        await usersApi.updateProfilePicture(uploadResponse.data.url);
+        const updateResponse = await usersApi.updateProfilePicture(uploadResponse.data.url);
+        console.log('Update response:', updateResponse);
+        
         showSuccess('Profile picture updated successfully!');
         refreshUser();
       }
     } catch (error) {
+      console.error('Profile picture update error:', error);
       showError('Failed to update profile picture');
     } finally {
       setUploading(false);
