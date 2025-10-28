@@ -1,8 +1,7 @@
-import type { NextConfig } from "next";
-
+/** @type {import('next').NextConfig} */
 const isProduction = process.env.NODE_ENV === 'production';
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   // Environment variables
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
@@ -27,17 +26,17 @@ const nextConfig: NextConfig = {
       // Add production image domains
       ...(isProduction ? [
         {
-          protocol: 'https' as const,
+          protocol: 'https',
           hostname: '*.railway.app',
           pathname: '/uploads/**',
         },
         {
-          protocol: 'https' as const,
+          protocol: 'https',
           hostname: '*.render.com',
           pathname: '/uploads/**',
         },
         {
-          protocol: 'https' as const,
+          protocol: 'https',
           hostname: 'res.cloudinary.com',
           pathname: '/**',
         }
@@ -97,4 +96,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
