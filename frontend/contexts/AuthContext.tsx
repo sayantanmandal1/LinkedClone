@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from '@/lib/types';
-import { authApi } from '@/lib/api';
+import { authApi, tokenManager } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -33,13 +33,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const refreshUser = async () => {
     try {
+      // Only try to get current user if we have a token
+      const token = tokenManager.getToken();
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       const response = await authApi.getCurrentUser();
       if (response.success && response.user) {
         setUser(response.user);
       } else {
+        // If the token is invalid, remove it
+        tokenManager.removeToken();
         setUser(null);
       }
     } catch (error) {
+      // If there's an auth error, remove the token
+      tokenManager.removeToken();
       setUser(null);
     } finally {
       setLoading(false);
@@ -49,7 +61,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (email: string, password: string) => {
     try {
       const response = await authApi.login({ email, password });
-      if (response.success && response.user) {
+      if (response.success && response.user && response.token) {
+        // Store the JWT token
+        tokenManager.setToken(response.token);
         setUser(response.user);
       } else {
         throw new Error(response.message || 'Login failed');
@@ -83,6 +97,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Continue with logout even if API call fails
       console.error('Logout error:', error);
     } finally {
+      // Remove the JWT token
+      tokenManager.removeToken();
       setUser(null);
     }
   };
