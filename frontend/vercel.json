@@ -2,12 +2,17 @@
   "version": 2,
   "name": "linkedin-clone-frontend",
   "framework": "nextjs",
-  "buildCommand": "npm run build",
+  "buildCommand": "npm ci && npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm ci",
   "devCommand": "npm run dev",
   "env": {
     "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
   },
   "functions": {
     "app/**/*.tsx": {

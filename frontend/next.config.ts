@@ -7,14 +7,14 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
-  
+
   // Production optimizations
   ...(isProduction && {
     compress: true,
     poweredByHeader: false,
     generateEtags: true,
   }),
-  
+
   // Image domains for external images
   images: {
     remotePatterns: [
@@ -48,7 +48,7 @@ const nextConfig: NextConfig = {
       minimumCacheTTL: 60,
     })
   },
-  
+
   // Security headers
   async headers() {
     return [
@@ -85,7 +85,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  
+
   // API routes configuration
   async rewrites() {
     return [
