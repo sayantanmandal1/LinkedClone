@@ -188,15 +188,11 @@ export class UserService {
         };
       }
 
-      console.log('Updating profile picture for user:', userId, 'with URL:', profilePictureUrl);
-      
       const user = await User.findByIdAndUpdate(
         userId,
         { profilePicture: profilePictureUrl },
         { new: true, runValidators: true }
       );
-      
-      console.log('Updated user:', user ? 'Success' : 'Failed', user?.profilePicture);
 
       if (!user) {
         return {

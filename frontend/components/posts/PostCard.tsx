@@ -107,12 +107,8 @@ export default function PostCard({
             loading="lazy"
             key={localPost.imageUrl} // Force re-render when imageUrl changes
             onError={(e) => {
-              console.error('Failed to load post image:', localPost.imageUrl);
               const target = e.currentTarget as HTMLImageElement;
               target.style.display = 'none';
-            }}
-            onLoad={() => {
-              console.log('Post image loaded successfully:', localPost.imageUrl);
             }}
             onClick={() => {
               // Open image in new tab on click for better mobile viewing
