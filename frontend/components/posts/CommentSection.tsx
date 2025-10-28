@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Post, Comment } from '@shared/types';
+import { Post, Comment } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { postsApi } from '@/lib/api';
 import { formatRelativeTime } from '@/lib/utils';
@@ -34,11 +34,13 @@ export default function CommentSection({ post, onCommentAdded }: CommentSectionP
     setError(null);
 
     // Optimistic update - create temporary comment
-    const tempComment = {
+    const tempComment: Comment = {
       _id: `temp-${Date.now()}`,
       author: user,
       content: newComment.trim(),
-      createdAt: new Date(),
+      post: post._id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     setComments(prev => [...prev, tempComment]);

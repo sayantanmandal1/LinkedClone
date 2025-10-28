@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { ToastNotification } from '@shared/types/ui';
+import { ToastNotification } from '@/lib/types';
 
 interface ToastContextType {
     toasts: ToastNotification[];

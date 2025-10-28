@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { User } from '@shared/types';
+import { User } from '@/lib/types';
 import { usersApi } from '@/lib/api';
 import ProfileFeed from './ProfileFeed';
 import UserInfo from './UserInfo';

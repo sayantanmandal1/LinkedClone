@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Post } from '@shared/types';
+import { Post } from '@/lib/types';
 import { postsApi, uploadApi } from '@/lib/api';
 import Button from '@/components/ui/Button';
 
@@ -14,7 +14,7 @@ interface PostEditModalProps {
 export default function PostEditModal({ post, onClose, onPostUpdated }: PostEditModalProps) {
   const [content, setContent] = useState(post.content);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(post.imageUrl || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(post.image || null);
   const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +93,7 @@ export default function PostEditModal({ post, onClose, onPostUpdated }: PostEdit
     setError(null);
 
     try {
-      let imageUrl: string | undefined = post.imageUrl;
+      let imageUrl: string | undefined = post.image;
 
       // Handle image changes
       if (imageFile) {
@@ -110,7 +110,7 @@ export default function PostEditModal({ post, onClose, onPostUpdated }: PostEdit
       // Update post
       const response = await postsApi.updatePost(post._id, {
         content: content.trim(),
-        imageUrl,
+        image: imageUrl,
       });
 
       if (response.success && response.post) {

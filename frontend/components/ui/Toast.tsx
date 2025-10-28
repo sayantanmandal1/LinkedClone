@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ToastNotification } from '@shared/types/ui';
+import { ToastNotification } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface ToastProps {

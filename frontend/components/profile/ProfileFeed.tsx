@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Post } from '@shared/types';
+import { Post } from '@/lib/types';
 import { usersApi } from '@/lib/api';
 import PostCard from '@/components/posts/PostCard';
 

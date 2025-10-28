@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Post } from '@shared/types';
+import { Post } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { postsApi } from '@/lib/api';
@@ -43,22 +43,23 @@ export default function PostActions({
 
     // Optimistic update
     const wasLiked = isLiked;
-    const newLikeCount = wasLiked ? post.likeCount - 1 : post.likeCount + 1;
+    const currentLikeCount = post.likeCount || post.likes.length;
+    const newLikeCount = wasLiked ? currentLikeCount - 1 : currentLikeCount + 1;
     onLikeUpdate(!wasLiked, newLikeCount);
 
     try {
       const response = await postsApi.likePost(post._id);
       if (response.success) {
         // Update with actual server response
-        onLikeUpdate(response.liked, response.likeCount);
+        onLikeUpdate(response.liked || false, response.likeCount || 0);
       } else {
         // Revert optimistic update on failure
-        onLikeUpdate(wasLiked, post.likeCount);
+        onLikeUpdate(wasLiked, post.likeCount || post.likes.length);
         showError('Failed to update like');
       }
     } catch (error) {
       // Revert optimistic update on error
-      onLikeUpdate(wasLiked, post.likeCount);
+      onLikeUpdate(wasLiked, post.likeCount || post.likes.length);
       ErrorHandler.handleError(error, {
         fallbackMessage: 'Failed to update like',
       });

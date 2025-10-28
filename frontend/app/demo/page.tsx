@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth';
 import { PostCreator, PostCard } from '@/components/posts';
-import { Post } from '@shared/types';
+import { Post } from '@/lib/types';
 
 // Sample post data for demonstration
 const samplePost: Post = {
@@ -14,11 +14,11 @@ const samplePost: Post = {
     _id: 'sample-user-1',
     name: 'John Doe',
     email: 'john@example.com',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15'),
+    createdAt: '2024-01-15T10:00:00Z',
+    updatedAt: '2024-01-15T10:00:00Z',
   },
   content: 'This is a sample post to demonstrate the PostCard component with all its features including likes, comments, and edit/delete actions for post owners.',
-  imageUrl: undefined,
+  image: undefined,
   likes: ['user-1', 'user-2'],
   comments: [
     {
@@ -27,11 +27,13 @@ const samplePost: Post = {
         _id: 'sample-user-2',
         name: 'Jane Smith',
         email: 'jane@example.com',
-        createdAt: new Date('2024-01-16'),
-        updatedAt: new Date('2024-01-16'),
+        createdAt: '2024-01-16T10:00:00Z',
+        updatedAt: '2024-01-16T10:00:00Z',
       },
       content: 'Great post! Thanks for sharing.',
-      createdAt: new Date('2024-01-16T10:30:00Z'),
+      post: 'sample-post-1',
+      createdAt: '2024-01-16T10:30:00Z',
+      updatedAt: '2024-01-16T10:30:00Z',
     },
     {
       _id: 'comment-2',
@@ -39,17 +41,17 @@ const samplePost: Post = {
         _id: 'sample-user-3',
         name: 'Bob Johnson',
         email: 'bob@example.com',
-        createdAt: new Date('2024-01-17'),
-        updatedAt: new Date('2024-01-17'),
+        createdAt: '2024-01-17T10:00:00Z',
+        updatedAt: '2024-01-17T10:00:00Z',
       },
       content: 'I completely agree with this perspective.',
-      createdAt: new Date('2024-01-16T14:15:00Z'),
+      post: 'sample-post-1',
+      createdAt: '2024-01-16T14:15:00Z',
+      updatedAt: '2024-01-16T14:15:00Z',
     },
   ],
-  likeCount: 2,
-  commentCount: 2,
-  createdAt: new Date('2024-01-15T09:00:00Z'),
-  updatedAt: new Date('2024-01-15T09:00:00Z'),
+  createdAt: '2024-01-15T09:00:00Z',
+  updatedAt: '2024-01-15T09:00:00Z',
 };
 
 export default function DemoPage() {
@@ -86,7 +88,7 @@ export default function DemoPage() {
 
           {/* Post Creator */}
           <PostCreator onPostCreated={handlePostCreated} />
-          
+
           {/* Sample Posts */}
           <div className="space-y-4">
             {posts.map((post) => (

@@ -96,7 +96,7 @@ export default function PostCreator({ onPostCreated, className }: PostCreatorPro
       // Create post
       const response = await postsApi.createPost({
         content: content.trim(),
-        imageUrl,
+        image: imageUrl,
       });
 
       if (!response.success) {

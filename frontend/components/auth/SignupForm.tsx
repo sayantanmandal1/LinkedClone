@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { validateUserRegistration } from '@shared/utils/validation';
+import { validateUserRegistration } from '@/lib/validation';
 
 interface SignupFormProps {
   onSuccess?: () => void;

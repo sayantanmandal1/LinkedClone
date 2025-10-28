@@ -1,13 +1,15 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": false,
-    "outDir": "./dist",
+    "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -15,7 +17,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "composite": true,
+    "forceConsistentCasingInFileNames": true,
     "plugins": [
       {
         "name": "next"
@@ -23,11 +25,21 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@shared/*": ["../shared/src/*"],
-      "@shared/types": ["../shared/src/types"],
-      "@shared/utils": ["../shared/src/utils"],
-      "@shared/constants": ["../shared/src/constants"]
+      "@/*": [
+        "./*"
+      ],
+      "@shared/*": [
+        "../shared/src/*"
+      ],
+      "@shared/types": [
+        "../shared/src/types"
+      ],
+      "@shared/utils": [
+        "../shared/src/utils"
+      ],
+      "@shared/constants": [
+        "../shared/src/constants"
+      ]
     }
   },
   "include": [
@@ -35,13 +47,13 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    ".next\\dev/types/**/*.ts",
+    ".next\\dev/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", ".next"],
-  "references": [
-    {
-      "path": "../shared"
-    }
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next"
   ]
 }

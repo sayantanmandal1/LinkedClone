@@ -7,7 +7,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { validateEmail, validatePassword } from '@shared/utils/validation';
+import { validateEmail, validatePassword } from '@/lib/validation';
 
 interface LoginFormProps {
   onSuccess?: () => void;

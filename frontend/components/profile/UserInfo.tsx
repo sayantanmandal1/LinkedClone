@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from '@shared/types';
+import { User } from '@/lib/types';
 
 interface UserInfoProps {
   user: User;

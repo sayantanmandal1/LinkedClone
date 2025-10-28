@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Post } from '@shared/types';
+import { Post } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatRelativeTime, cn } from '@/lib/utils';
 import PostActions from '@/components/posts/PostActions';
@@ -47,7 +47,7 @@ export default function PostCard({
     // For now, we'll optimistically increment the count
     setLocalPost(prev => ({
       ...prev,
-      commentCount: prev.commentCount + 1
+      commentCount: (prev.commentCount || prev.comments.length) + 1
     }));
     onPostUpdated?.();
   };
@@ -97,38 +97,38 @@ export default function PostCard({
       </div>
 
       {/* Post image */}
-      {localPost.imageUrl && (
+      {localPost.image && (
         <div className="px-3 sm:px-4 pb-3">
           <img
-            src={localPost.imageUrl}
+            src={localPost.image}
             alt="Post image"
             className="w-full max-h-64 sm:max-h-96 object-cover rounded-lg border cursor-pointer hover:opacity-95 transition-opacity"
             loading="lazy"
             onClick={() => {
               // Open image in new tab on click for better mobile viewing
-              window.open(localPost.imageUrl, '_blank');
+              window.open(localPost.image, '_blank');
             }}
           />
         </div>
       )}
 
       {/* Engagement stats */}
-      {(localPost.likeCount > 0 || localPost.commentCount > 0) && (
+      {((localPost.likeCount || localPost.likes.length) > 0 || (localPost.commentCount || localPost.comments.length) > 0) && (
         <div className="px-3 sm:px-4 pb-2">
           <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
             <div className="flex items-center space-x-3 sm:space-x-4">
-              {localPost.likeCount > 0 && (
+              {(localPost.likeCount || localPost.likes.length) > 0 && (
                 <span>
-                  {localPost.likeCount} {localPost.likeCount === 1 ? 'like' : 'likes'}
+                  {localPost.likeCount || localPost.likes.length} {(localPost.likeCount || localPost.likes.length) === 1 ? 'like' : 'likes'}
                 </span>
               )}
             </div>
-            {localPost.commentCount > 0 && (
+            {(localPost.commentCount || localPost.comments.length) > 0 && (
               <button
                 onClick={() => setShowComments(!showComments)}
                 className="hover:text-primary-600 transition-colors touch-manipulation py-1"
               >
-                {localPost.commentCount} {localPost.commentCount === 1 ? 'comment' : 'comments'}
+                {localPost.commentCount || localPost.comments.length} {(localPost.commentCount || localPost.comments.length) === 1 ? 'comment' : 'comments'}
               </button>
             )}
           </div>

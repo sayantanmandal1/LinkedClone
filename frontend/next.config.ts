@@ -3,9 +3,15 @@ import type { NextConfig } from "next";
 const isProduction = process.env.NODE_ENV === 'production';
 
 const nextConfig: NextConfig = {
+  // Set turbopack root to silence workspace warnings
+  turbopack: {
+    root: process.cwd(),
+  },
+  
   // Enable experimental features
   experimental: {
     optimizePackageImports: ['@linkedin-clone/shared'],
+    externalDir: true,
   },
   
   // Environment variables
