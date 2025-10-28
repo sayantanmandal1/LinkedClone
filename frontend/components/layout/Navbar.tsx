@@ -117,7 +117,7 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                 </Link>
                 <Link
                   href="/signup"
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Sign Up
                 </Link>
@@ -191,7 +191,7 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                 </Link>
                 <Link
                   href="/signup"
-                  className="block px-3 py-2 rounded-md text-base font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+                  className="block px-3 py-2 rounded-md text-base font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sign Up

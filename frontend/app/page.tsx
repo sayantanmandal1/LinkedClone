@@ -32,9 +32,9 @@ export default function Home() {
           <div className="space-y-3 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center max-w-sm sm:max-w-none mx-auto">
             <Link
               href="/signup"
-              className="block sm:inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors touch-manipulation"
+              className="block sm:inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors touch-manipulation"
             >
-              Get Started
+              Get Started 
             </Link>
             <Link
               href="/login"
