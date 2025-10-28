@@ -114,17 +114,17 @@ postSchema.index({ 'comments.createdAt': -1 }); // For comment ordering
 // Static method to find posts with populated author and comment authors
 postSchema.statics.findWithPopulatedData = function(filter = {}, options = {}) {
   return this.find(filter, null, options)
-    .populate('author', 'name email createdAt')
-    .populate('comments.author', 'name email createdAt')
-    .populate('likes', 'name email');
+    .populate('author', 'name email profilePicture createdAt')
+    .populate('comments.author', 'name email profilePicture createdAt')
+    .populate('likes', 'name email profilePicture');
 };
 
 // Static method to find a single post with populated data
 postSchema.statics.findOneWithPopulatedData = function(filter = {}) {
   return this.findOne(filter)
-    .populate('author', 'name email createdAt')
-    .populate('comments.author', 'name email createdAt')
-    .populate('likes', 'name email');
+    .populate('author', 'name email profilePicture createdAt')
+    .populate('comments.author', 'name email profilePicture createdAt')
+    .populate('likes', 'name email profilePicture');
 };
 
 // Instance method to add a like

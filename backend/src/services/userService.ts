@@ -57,6 +57,7 @@ export class UserService {
         _id: user._id.toString(),
         name: user.name,
         email: user.email,
+        profilePicture: user.profilePicture,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         postCount,
