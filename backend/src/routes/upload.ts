@@ -4,6 +4,8 @@ import { authenticate as auth } from '../middleware/auth';
 import path from 'path';
 import fs from 'fs';
 
+
+
 const router = Router();
 
 /**
@@ -21,7 +23,8 @@ router.post('/image', auth, upload.single('image'), async (req: Request, res: Re
     }
 
     // Generate the URL for the uploaded image
-    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+    // Hardcoded HTTPS URL for production deployment
+    const baseUrl = 'https://linkedclone.onrender.com/api';
     const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     res.status(201).json({
