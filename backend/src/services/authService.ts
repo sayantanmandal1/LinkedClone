@@ -1,5 +1,6 @@
 import { User } from '../models/User';
 import { JwtUtils } from '../utils/jwt';
+import { transformUserUrls } from '../utils/urlHelper';
 import { 
   validateUserRegistration,
   CreateUserRequest, 
@@ -65,7 +66,7 @@ export class AuthService {
 
       return {
         success: true,
-        user: userObject,
+        user: transformUserUrls(userObject),
         token,
         message: 'User registered successfully',
       };
@@ -134,7 +135,7 @@ export class AuthService {
 
       return {
         success: true,
-        user: userObject,
+        user: transformUserUrls(userObject),
         token,
         message: 'Login successful',
       };
@@ -173,7 +174,7 @@ export class AuthService {
 
       return {
         success: true,
-        user: userObject,
+        user: transformUserUrls(userObject),
       };
     } catch (error) {
       console.error('Get user error:', error);

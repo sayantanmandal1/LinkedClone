@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { Post, PostDocument } from '../models/Post';
+import { transformPostUrls } from '../utils/urlHelper';
 import { CreatePostRequest, UpdatePostRequest } from '@linkedin-clone/shared';
 
 export class PostService {
