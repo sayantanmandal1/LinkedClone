@@ -1,6 +1,6 @@
-import type { 
-  AuthResponse, 
-  LoginRequest, 
+import type {
+  AuthResponse,
+  LoginRequest,
   CreateUserRequest,
   PostsResponse,
   PostResponse,
@@ -35,12 +35,12 @@ export const tokenManager = {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem(TOKEN_KEY);
   },
-  
+
   setToken: (token: string): void => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(TOKEN_KEY, token);
   },
-  
+
   removeToken: (): void => {
     if (typeof window === 'undefined') return;
     localStorage.removeItem(TOKEN_KEY);
@@ -52,7 +52,7 @@ async function fetchApi<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...options.headers as Record<string, string>,
@@ -115,23 +115,43 @@ export const authApi = {
 
 // Posts API
 export const postsApi = {
-  getPosts: (page = 1, limit = 10): Promise<PostsResponse> =>
-    fetchApi(`/posts?page=${page}&limit=${limit}`),
+  getPosts: async (page = 1, limit = 10): Promise<PostsResponse> => {
+    const response = await fetchApi<PostsResponse>(`/posts?page=${page}&limit=${limit}`);
+    return {
+      ...response,
+      posts: response.posts ? normalizePosts(response.posts) : []
+    };
+  },
 
-  getPost: (id: string): Promise<PostResponse> =>
-    fetchApi(`/posts/${id}`),
+  getPost: async (id: string): Promise<PostResponse> => {
+    const response = await fetchApi<PostResponse>(`/posts/${id}`);
+    return {
+      ...response,
+      post: response.post ? normalizePost(response.post) : response.post
+    };
+  },
 
-  createPost: (postData: CreatePostRequest): Promise<PostResponse> =>
-    fetchApi('/posts', {
+  createPost: async (postData: CreatePostRequest): Promise<PostResponse> => {
+    const response = await fetchApi<PostResponse>('/posts', {
       method: 'POST',
       body: JSON.stringify(postData),
-    }),
+    });
+    return {
+      ...response,
+      post: response.post ? normalizePost(response.post) : response.post
+    };
+  },
 
-  updatePost: (id: string, postData: UpdatePostRequest): Promise<PostResponse> =>
-    fetchApi(`/posts/${id}`, {
+  updatePost: async (id: string, postData: UpdatePostRequest): Promise<PostResponse> => {
+    const response = await fetchApi<PostResponse>(`/posts/${id}`, {
       method: 'PUT',
       body: JSON.stringify(postData),
-    }),
+    });
+    return {
+      ...response,
+      post: response.post ? normalizePost(response.post) : response.post
+    };
+  },
 
   deletePost: (id: string): Promise<DeleteResponse> =>
     fetchApi(`/posts/${id}`, {
@@ -161,18 +181,18 @@ export const usersApi = {
   },
 
   getUserPosts: async (id: string, page = 1, limit = 10): Promise<PostsResponse> => {
-    const response = await fetchApi<{ 
-      success: boolean; 
-      data: any[]; 
-      totalCount: number; 
-      page: number; 
-      limit: number; 
-      totalPages: number; 
-      message: string 
+    const response = await fetchApi<{
+      success: boolean;
+      data: any[];
+      totalCount: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+      message: string
     }>(`/users/${id}/posts?page=${page}&limit=${limit}`);
     return {
       success: response.success,
-      posts: response.data,
+      posts: normalizePosts(response.data),
       totalCount: response.totalCount,
       page: response.page,
       hasMore: response.page < response.totalPages
@@ -221,6 +241,22 @@ export const uploadApi = {
       return data;
     });
   },
+};
+
+// Helper function to ensure posts have required array properties
+const normalizePost = (post: any): any => {
+  return {
+    ...post,
+    likes: post.likes || [],
+    comments: post.comments || [],
+    likeCount: post.likeCount || (post.likes || []).length,
+    commentCount: post.commentCount || (post.comments || []).length
+  };
+};
+
+// Helper function to normalize posts array
+const normalizePosts = (posts: any[]): any[] => {
+  return (posts || []).map(normalizePost);
 };
 
 export { ApiError };

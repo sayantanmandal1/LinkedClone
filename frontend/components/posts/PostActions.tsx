@@ -34,7 +34,7 @@ export default function PostActions({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const isLiked = user ? post.likes.includes(user._id) : false;
+  const isLiked = user ? (post.likes || []).includes(user._id) : false;
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -43,7 +43,7 @@ export default function PostActions({
 
     // Optimistic update
     const wasLiked = isLiked;
-    const currentLikeCount = post.likeCount || post.likes.length;
+    const currentLikeCount = post.likeCount || (post.likes || []).length;
     const newLikeCount = wasLiked ? currentLikeCount - 1 : currentLikeCount + 1;
     onLikeUpdate(!wasLiked, newLikeCount);
 
@@ -54,12 +54,12 @@ export default function PostActions({
         onLikeUpdate(response.liked || false, response.likeCount || 0);
       } else {
         // Revert optimistic update on failure
-        onLikeUpdate(wasLiked, post.likeCount || post.likes.length);
+        onLikeUpdate(wasLiked, post.likeCount || (post.likes || []).length);
         showError('Failed to update like');
       }
     } catch (error) {
       // Revert optimistic update on error
-      onLikeUpdate(wasLiked, post.likeCount || post.likes.length);
+      onLikeUpdate(wasLiked, post.likeCount || (post.likes || []).length);
       ErrorHandler.handleError(error, {
         fallbackMessage: 'Failed to update like',
       });

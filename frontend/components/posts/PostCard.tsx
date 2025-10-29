@@ -39,8 +39,8 @@ export default function PostCard({
       ...prev,
       likeCount,
       likes: liked
-        ? [...prev.likes.filter(id => id !== user!._id), user!._id]
-        : prev.likes.filter(id => id !== user!._id)
+        ? [...(prev.likes || []).filter(id => id !== user!._id), user!._id]
+        : (prev.likes || []).filter(id => id !== user!._id)
     }));
   };
 
@@ -49,7 +49,7 @@ export default function PostCard({
     // For now, we'll optimistically increment the count
     setLocalPost(prev => ({
       ...prev,
-      commentCount: (prev.commentCount || prev.comments.length) + 1
+      commentCount: (prev.commentCount || (prev.comments || []).length) + 1
     }));
     onPostUpdated?.();
   };
@@ -120,22 +120,22 @@ export default function PostCard({
       )}
 
       {/* Engagement stats */}
-      {((localPost.likeCount || localPost.likes.length) > 0 || (localPost.commentCount || localPost.comments.length) > 0) && (
+      {((localPost.likeCount || (localPost.likes || []).length) > 0 || (localPost.commentCount || (localPost.comments || []).length) > 0) && (
         <div className="px-3 sm:px-4 pb-2">
           <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
             <div className="flex items-center space-x-3 sm:space-x-4">
-              {(localPost.likeCount || localPost.likes.length) > 0 && (
+              {(localPost.likeCount || (localPost.likes || []).length) > 0 && (
                 <span>
-                  {localPost.likeCount || localPost.likes.length} {(localPost.likeCount || localPost.likes.length) === 1 ? 'like' : 'likes'}
+                  {localPost.likeCount || (localPost.likes || []).length} {(localPost.likeCount || (localPost.likes || []).length) === 1 ? 'like' : 'likes'}
                 </span>
               )}
             </div>
-            {(localPost.commentCount || localPost.comments.length) > 0 && (
+            {(localPost.commentCount || (localPost.comments || []).length) > 0 && (
               <button
                 onClick={() => setShowComments(!showComments)}
                 className="hover:text-primary-600 transition-colors touch-manipulation py-1"
               >
-                {localPost.commentCount || localPost.comments.length} {(localPost.commentCount || localPost.comments.length) === 1 ? 'comment' : 'comments'}
+                {localPost.commentCount || (localPost.comments || []).length} {(localPost.commentCount || (localPost.comments || []).length) === 1 ? 'comment' : 'comments'}
               </button>
             )}
           </div>
