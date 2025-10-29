@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { JWT_CONFIG } from '../types';
+import { JWT_CONFIG } from '@linkedin-clone/shared';
 
 export interface JwtPayload {
   userId: string;
