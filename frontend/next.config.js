@@ -30,6 +30,11 @@ const nextConfig = {
         port: '5000',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'linkedclone.onrender.com',
+        pathname: '/uploads/**',
+      },
       // Add production image domains
       ...(isProduction ? [
         {
@@ -84,7 +89,7 @@ const nextConfig = {
             },
             {
               key: 'Content-Security-Policy',
-              value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;",
+              value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: https://linkedclone.onrender.com; font-src 'self' data:; connect-src 'self' https: https://linkedclone.onrender.com;",
             }
           ] : [])
         ],
@@ -97,7 +102,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/:path*`,
+        destination: `${process.env.NEXT_PUBLIC_API_URL || 'https://linkedclone.onrender.com/api'}/:path*`,
       },
     ];
   },
