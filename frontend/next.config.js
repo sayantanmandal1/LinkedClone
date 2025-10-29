@@ -1,23 +1,17 @@
 /** @type {import('next').NextConfig} */
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Force disable turbopack for builds
-process.env.TURBOPACK = '0';
-
 const nextConfig = {
   // Environment variables
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
 
+
+
   // Experimental features
   experimental: {
     // Future experimental features can be added here
-  },
-
-  // Turbopack configuration
-  turbopack: {
-    root: process.cwd(),
   },
 
   // Production optimizations
