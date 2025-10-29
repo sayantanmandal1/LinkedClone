@@ -2,13 +2,11 @@
 
 import { ReactNode } from 'react';
 import Navbar from './Navbar';
+import { User } from '@/lib/types';
 
 interface LayoutProps {
   children: ReactNode;
-  user?: {
-    name: string;
-    email: string;
-  } | null;
+  user?: User | null;
   onLogout?: () => void;
 }
 
