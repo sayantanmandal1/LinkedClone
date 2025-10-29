@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -25,7 +25,7 @@ export default function LoadingSpinner({
 
   return (
     <svg
-      className={clsx(
+      className={cn(
         'animate-spin',
         sizeClasses[size],
         colorClasses[color],

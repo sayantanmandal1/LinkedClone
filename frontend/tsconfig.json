@@ -42,18 +42,6 @@
       ],
       "@/app/*": [
         "./app/*"
-      ],
-      "@shared/*": [
-        "../shared/src/*"
-      ],
-      "@shared/types": [
-        "../shared/src/types"
-      ],
-      "@shared/utils": [
-        "../shared/src/utils"
-      ],
-      "@shared/constants": [
-        "../shared/src/constants"
       ]
     }
   },

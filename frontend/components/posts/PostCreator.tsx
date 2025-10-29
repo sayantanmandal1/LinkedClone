@@ -8,7 +8,7 @@ import { postsApi, uploadApi } from '@/lib/api';
 import { ErrorHandler } from '@/lib/errorHandler';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 
 interface PostCreatorProps {
   onPostCreated?: () => void;
@@ -131,7 +131,7 @@ export default function PostCreator({ onPostCreated, className }: PostCreatorPro
   }
 
   return (
-    <div className={clsx('bg-white rounded-lg shadow-sm border p-3 sm:p-4', className)}>
+    <div className={cn('bg-white rounded-lg shadow-sm border p-3 sm:p-4', className)}>
       <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         {/* User info */}
         <div className="flex items-center space-x-3">

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Post } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatRelativeTime } from '@/lib/utils';
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 import PostActions from '@/components/posts/PostActions';
 import CommentSection from '@/components/posts/CommentSection';
 import Avatar from '@/components/ui/Avatar';
@@ -55,7 +55,7 @@ export default function PostCard({
   };
 
   return (
-    <article className={clsx('bg-white rounded-lg shadow-sm border', className)}>
+    <article className={cn('bg-white rounded-lg shadow-sm border', className)}>
       {/* Post header */}
       <div className="p-3 sm:p-4 pb-3">
         <div className="flex items-start space-x-3">
