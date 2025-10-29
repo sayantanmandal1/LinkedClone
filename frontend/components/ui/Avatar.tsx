@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 interface AvatarProps {
   src?: string;
   alt?: string;
-  name: string;
+  name?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   onClick?: () => void;
@@ -45,7 +45,7 @@ export default function Avatar({
     }
   };
 
-  const initials = name
+  const initials = (name || 'Unknown')
     .split(' ')
     .map(word => word.charAt(0))
     .join('')
@@ -55,7 +55,7 @@ export default function Avatar({
   const avatarContent = src && !imageError ? (
     <img
       src={src}
-      alt={alt || `${name}'s avatar`}
+      alt={alt || `${name || 'User'}'s avatar`}
       className="w-full h-full object-cover"
       onError={handleImageError}
       key={src} // Force re-render when src changes

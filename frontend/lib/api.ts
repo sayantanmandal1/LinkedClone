@@ -250,13 +250,43 @@ const normalizePost = (post: any): any => {
     likes: post.likes || [],
     comments: post.comments || [],
     likeCount: post.likeCount || (post.likes || []).length,
-    commentCount: post.commentCount || (post.comments || []).length
+    commentCount: post.commentCount || (post.comments || []).length,
+    author: post.author ? {
+      ...post.author,
+      name: post.author.name || 'Unknown User'
+    } : {
+      _id: 'unknown',
+      name: 'Unknown User',
+      email: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  };
+};
+
+// Helper function to normalize comments
+const normalizeComment = (comment: any): any => {
+  return {
+    ...comment,
+    author: comment.author ? {
+      ...comment.author,
+      name: comment.author.name || 'Unknown User'
+    } : {
+      _id: 'unknown',
+      name: 'Unknown User',
+      email: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
   };
 };
 
 // Helper function to normalize posts array
 const normalizePosts = (posts: any[]): any[] => {
-  return (posts || []).map(normalizePost);
+  return (posts || []).map(post => ({
+    ...normalizePost(post),
+    comments: (post.comments || []).map(normalizeComment)
+  }));
 };
 
 export { ApiError };
