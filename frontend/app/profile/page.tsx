@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfilePage } from '@/components/profile';
+import { debugLog, debugUser } from '@/lib/debug';
 
 export default function CurrentUserProfilePage() {
   const { user, loading } = useAuth();
@@ -11,6 +12,9 @@ export default function CurrentUserProfilePage() {
   const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
+    debugLog('PROFILE_PAGE_STATE', { loading, hasUser: !!user, userId: user?._id });
+    debugUser(user);
+    
     if (!loading && !user) {
       setRedirecting(true);
       router.push('/login');
@@ -37,8 +41,22 @@ export default function CurrentUserProfilePage() {
     );
   }
 
-  if (!user) {
-    return null;
+  if (!user || !user._id) {
+    return (
+      <div className="max-w-4xl mx-auto py-8">
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-6 py-8 text-center">
+            <p className="text-red-600">Unable to load profile. Please try logging in again.</p>
+            <button
+              onClick={() => router.push('/login')}
+              className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+            >
+              Go to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return <ProfilePage userId={user._id} />;

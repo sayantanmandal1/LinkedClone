@@ -115,10 +115,13 @@ export default function ProfileFeed({ userId }: ProfileFeedProps) {
 
   // Initial load when userId changes
   useEffect(() => {
-    if (userId) {
+    if (userId && userId !== 'undefined' && userId !== 'null') {
       setPage(1);
       setPosts([]);
       loadPosts(1, false);
+    } else if (!userId || userId === 'undefined' || userId === 'null') {
+      setError('Invalid user ID');
+      setLoading(false);
     }
   }, [userId]);
 

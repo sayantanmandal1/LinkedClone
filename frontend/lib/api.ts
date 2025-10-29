@@ -92,11 +92,16 @@ async function fetchApi<T>(
 
 // Authentication API
 export const authApi = {
-  login: (credentials: LoginRequest): Promise<AuthResponse> =>
-    fetchApi('/auth/login', {
+  login: async (credentials: LoginRequest): Promise<AuthResponse> => {
+    const response = await fetchApi<AuthResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
-    }),
+    });
+    return {
+      ...response,
+      user: response.user ? normalizeUser(response.user) : response.user
+    };
+  },
 
   register: (userData: CreateUserRequest): Promise<AuthResponse> =>
     fetchApi('/auth/register', {
@@ -109,8 +114,13 @@ export const authApi = {
       method: 'POST',
     }),
 
-  getCurrentUser: (): Promise<{ success: boolean; user: User }> =>
-    fetchApi('/auth/me'),
+  getCurrentUser: async (): Promise<{ success: boolean; user: User }> => {
+    const response = await fetchApi<{ success: boolean; user: any }>('/auth/me');
+    return {
+      ...response,
+      user: response.user ? normalizeUser(response.user) : response.user
+    };
+  },
 };
 
 // Posts API
@@ -173,10 +183,10 @@ export const postsApi = {
 // Users API
 export const usersApi = {
   getUser: async (id: string): Promise<{ success: boolean; user: User }> => {
-    const response = await fetchApi<{ success: boolean; data: User; message: string }>(`/users/${id}`);
+    const response = await fetchApi<{ success: boolean; data: any; message: string }>(`/users/${id}`);
     return {
       success: response.success,
-      user: response.data
+      user: response.data ? normalizeUser(response.data) : response.data
     };
   },
 
@@ -287,6 +297,18 @@ const normalizePosts = (posts: any[]): any[] => {
     ...normalizePost(post),
     comments: (post.comments || []).map(normalizeComment)
   }));
+};
+
+// Helper function to normalize user data
+const normalizeUser = (user: any): User => {
+  return {
+    ...user,
+    _id: user._id || user.id,
+    name: user.name || 'Unknown User',
+    email: user.email || '',
+    createdAt: user.createdAt || new Date().toISOString(),
+    updatedAt: user.updatedAt || new Date().toISOString()
+  };
 };
 
 export { ApiError };

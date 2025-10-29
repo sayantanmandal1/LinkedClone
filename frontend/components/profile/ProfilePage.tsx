@@ -22,8 +22,8 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
   const targetUserId = userId || (params?.id as string);
 
   useEffect(() => {
-    if (!targetUserId) {
-      setError('User ID is required');
+    if (!targetUserId || targetUserId === 'undefined' || targetUserId === 'null') {
+      setError('Invalid user ID');
       setLoading(false);
       return;
     }
@@ -41,6 +41,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
           setError('User not found');
         }
       } catch (error: any) {
+        console.error('Profile fetch error:', error);
         setError(error.message || 'Failed to load user profile');
       } finally {
         setLoading(false);

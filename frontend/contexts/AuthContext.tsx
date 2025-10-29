@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from '@/lib/types';
 import { authApi, tokenManager } from '@/lib/api';
+import { debugLog, debugError, debugUser } from '@/lib/debug';
 
 interface AuthContextType {
   user: User | null;
@@ -42,15 +43,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       const response = await authApi.getCurrentUser();
+      debugLog('AUTH_REFRESH_RESPONSE', response);
       
       if (response.success && response.user) {
+        debugUser(response.user);
         setUser(response.user);
       } else {
+        debugError('AUTH_REFRESH_FAILED', response);
         // If the token is invalid, remove it
         tokenManager.removeToken();
         setUser(null);
       }
     } catch (error) {
+      debugError('AUTH_REFRESH_ERROR', error);
       // If there's an auth error, remove the token
       tokenManager.removeToken();
       setUser(null);
@@ -62,9 +67,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (email: string, password: string) => {
     try {
       const response = await authApi.login({ email, password });
+      debugLog('LOGIN_RESPONSE', response);
+      
       if (response.success && response.user && response.token) {
         // Store the JWT token
         tokenManager.setToken(response.token);
+        debugUser(response.user);
         setUser(response.user);
       } else {
         throw new Error(response.message || 'Login failed');
