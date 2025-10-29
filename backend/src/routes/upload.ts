@@ -21,10 +21,7 @@ router.post('/image', auth, upload.single('image'), async (req: Request, res: Re
     }
 
     // Generate the URL for the uploaded image
-    // Auto-detect protocol and host for better deployment compatibility
-    const protocol = req.get('x-forwarded-proto') || req.protocol || 'http';
-    const host = req.get('host');
-    const baseUrl = process.env.BASE_URL || `${protocol}://${host}`;
+    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
     const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     res.status(201).json({
@@ -40,7 +37,7 @@ router.post('/image', auth, upload.single('image'), async (req: Request, res: Re
     });
   } catch (error) {
     console.error('Error uploading image:', error);
-
+    
     // Clean up uploaded file if there was an error
     if (req.file) {
       try {
@@ -64,7 +61,7 @@ router.post('/image', auth, upload.single('image'), async (req: Request, res: Re
 router.delete('/image/:filename', auth, async (req: Request, res: Response) => {
   try {
     const { filename } = req.params;
-
+    
     // Validate filename to prevent directory traversal
     if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
       return res.status(400).json({
@@ -74,7 +71,7 @@ router.delete('/image/:filename', auth, async (req: Request, res: Response) => {
     }
 
     const filePath = path.join(process.cwd(), 'uploads', filename);
-
+    
     // Check if file exists
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
