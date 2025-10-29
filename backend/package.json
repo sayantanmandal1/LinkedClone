@@ -15,7 +15,6 @@
     "postbuild": "cp -r uploads dist/ 2>/dev/null || true"
   },
   "dependencies": {
-    "@linkedin-clone/shared": "file:../shared",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

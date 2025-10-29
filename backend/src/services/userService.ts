@@ -1,6 +1,6 @@
 import { User } from '../models/User';
 import { Post } from '../models/Post';
-import { User as IUser, Post as IPost, ERROR_CODES, PaginationParams } from '@linkedin-clone/shared';
+import { User as IUser, Post as IPost, ERROR_CODES, PaginationParams } from '../types';
 import mongoose from 'mongoose';
 
 export interface UserProfileResponse {
