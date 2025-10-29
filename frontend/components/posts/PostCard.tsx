@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Post } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatRelativeTime } from '../../lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
 import clsx from 'clsx';
 import PostActions from '@/components/posts/PostActions';
 import CommentSection from '@/components/posts/CommentSection';

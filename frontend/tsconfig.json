@@ -28,6 +28,21 @@
       "@/*": [
         "./*"
       ],
+      "@/lib/*": [
+        "./lib/*"
+      ],
+      "@/components/*": [
+        "./components/*"
+      ],
+      "@/contexts/*": [
+        "./contexts/*"
+      ],
+      "@/hooks/*": [
+        "./hooks/*"
+      ],
+      "@/app/*": [
+        "./app/*"
+      ],
       "@shared/*": [
         "../shared/src/*"
       ],

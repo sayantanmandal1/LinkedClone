@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Post, Comment } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { postsApi } from '@/lib/api';
-import { formatRelativeTime } from '../../lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import Avatar from '@/components/ui/Avatar';
 
