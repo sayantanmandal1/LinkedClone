@@ -7,7 +7,7 @@ import {
   AuthResponse,
   User as IUser,
   ERROR_CODES
-} from '@linkedin-clone/shared';
+} from '../types';
 
 export class AuthService {
   /**

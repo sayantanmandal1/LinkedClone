@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { UserService } from '../services/userService';
 import { optionalAuth, authenticate } from '../middleware/auth';
-import { HTTP_STATUS, PaginationParams } from '@linkedin-clone/shared';
+import { HTTP_STATUS, PaginationParams } from '../types';
 
 const router = express.Router();
 
