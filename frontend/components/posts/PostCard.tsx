@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Post } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatRelativeTime, cn } from '@/lib/utils';
+import { formatRelativeTime } from '../../lib/utils';
+import clsx from 'clsx';
 import PostActions from '@/components/posts/PostActions';
 import CommentSection from '@/components/posts/CommentSection';
 import Avatar from '@/components/ui/Avatar';
@@ -16,11 +17,11 @@ interface PostCardProps {
   className?: string;
 }
 
-export default function PostCard({ 
-  post, 
-  onPostUpdated, 
-  onPostDeleted, 
-  className 
+export default function PostCard({
+  post,
+  onPostUpdated,
+  onPostDeleted,
+  className
 }: PostCardProps) {
   const { user } = useAuth();
   const [showComments, setShowComments] = useState(false);
@@ -37,7 +38,7 @@ export default function PostCard({
     setLocalPost(prev => ({
       ...prev,
       likeCount,
-      likes: liked 
+      likes: liked
         ? [...prev.likes.filter(id => id !== user!._id), user!._id]
         : prev.likes.filter(id => id !== user!._id)
     }));
@@ -54,7 +55,7 @@ export default function PostCard({
   };
 
   return (
-    <article className={cn('bg-white rounded-lg shadow-sm border', className)}>
+    <article className={clsx('bg-white rounded-lg shadow-sm border', className)}>
       {/* Post header */}
       <div className="p-3 sm:p-4 pb-3">
         <div className="flex items-start space-x-3">
@@ -67,12 +68,12 @@ export default function PostCard({
               className="hover:border-primary-400 transition-colors touch-manipulation"
             />
           </Link>
-          
+
           {/* Author info and timestamp */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between">
               <div className="min-w-0 flex-1">
-                <Link 
+                <Link
                   href={`/profile/${localPost.author._id}`}
                   className="font-medium text-gray-900 hover:text-primary-600 transition-colors truncate block text-sm sm:text-base"
                 >

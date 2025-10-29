@@ -7,7 +7,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { ErrorHandler } from '@/lib/errorHandler';
 import PostCard from '@/components/posts/PostCard';
 
-import { cn } from '@/lib/utils';
+import clsx from 'clsx';
 
 interface FeedProps {
   className?: string;
@@ -183,7 +183,7 @@ export default function Feed({ className, onPostCreated }: FeedProps) {
 
   if (loading && posts.length === 0) {
     return (
-      <div className={cn('space-y-3 sm:space-y-4', className)}>
+      <div className={clsx('space-y-3 sm:space-y-4', className)}>
         {/* Loading skeleton */}
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 animate-pulse">
@@ -206,7 +206,7 @@ export default function Feed({ className, onPostCreated }: FeedProps) {
 
   if (error && posts.length === 0) {
     return (
-      <div className={cn('bg-white rounded-lg shadow-sm border p-6 text-center', className)}>
+      <div className={clsx('bg-white rounded-lg shadow-sm border p-6 text-center', className)}>
         <div className="text-red-600 mb-4">
           <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -226,7 +226,7 @@ export default function Feed({ className, onPostCreated }: FeedProps) {
 
   if (posts.length === 0) {
     return (
-      <div className={cn('bg-white rounded-lg shadow-sm border p-6 text-center', className)}>
+      <div className={clsx('bg-white rounded-lg shadow-sm border p-6 text-center', className)}>
         <div className="text-gray-500">
           <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
@@ -239,7 +239,7 @@ export default function Feed({ className, onPostCreated }: FeedProps) {
   }
 
   return (
-    <div className={cn('space-y-3 sm:space-y-4', className)}>
+    <div className={clsx('space-y-3 sm:space-y-4', className)}>
       {/* Refresh indicator */}
       {refreshing && (
         <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 text-center">

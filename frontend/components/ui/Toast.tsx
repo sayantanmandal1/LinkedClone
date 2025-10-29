@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ToastNotification } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import clsx from 'clsx';
 
 interface ToastProps {
   toast: ToastNotification;
@@ -74,7 +74,7 @@ export default function Toast({ toast, onRemove }: ToastProps) {
 
   return (
     <div
-      className={cn(
+      className={clsx(
         getToastStyles(),
         'transform transition-all duration-300 ease-in-out',
         isVisible && !isLeaving ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'

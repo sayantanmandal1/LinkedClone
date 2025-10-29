@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { postsApi } from '@/lib/api';
 import { ErrorHandler } from '@/lib/errorHandler';
-import { cn } from '@/lib/utils';
+import clsx from 'clsx';
 import PostEditModal from '@/components/posts/PostEditModal';
 
 interface PostActionsProps {
@@ -112,7 +112,7 @@ export default function PostActions({
             <button
               onClick={handleLike}
               disabled={!user || isLiking}
-              className={cn(
+              className={clsx(
                 'flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors touch-manipulation min-h-[44px] sm:min-h-[36px]',
                 isLiked
                   ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
@@ -121,7 +121,7 @@ export default function PostActions({
               )}
             >
               <svg 
-                className={cn('w-4 h-4 sm:w-5 sm:h-5', isLiked && 'fill-current')} 
+                className={clsx('w-4 h-4 sm:w-5 sm:h-5', isLiked && 'fill-current')} 
                 fill={isLiked ? 'currentColor' : 'none'} 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -140,7 +140,7 @@ export default function PostActions({
             <button
               onClick={onToggleComments}
               disabled={!user}
-              className={cn(
+              className={clsx(
                 'flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors touch-manipulation min-h-[44px] sm:min-h-[36px]',
                 showComments
                   ? 'text-primary-600 bg-primary-50'

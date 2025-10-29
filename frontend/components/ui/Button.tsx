@@ -1,5 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -34,7 +34,7 @@ export default function Button({
 
   return (
     <button
-      className={cn(
+      className={clsx(
         baseClasses,
         variants[variant],
         sizes[size],

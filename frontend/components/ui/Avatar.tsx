@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import clsx from 'clsx';
 
 interface AvatarProps {
   src?: string;
@@ -71,7 +71,7 @@ export default function Avatar({
   return (
     <div className="relative inline-block">
       <div
-        className={cn(
+        className={clsx(
           'rounded-full overflow-hidden border-2 border-gray-200 transition-all',
           sizeClasses[size],
           onClick && 'cursor-pointer hover:border-primary-300',
