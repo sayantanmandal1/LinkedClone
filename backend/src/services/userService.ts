@@ -1,6 +1,5 @@
 import { User } from '../models/User';
 import { Post } from '../models/Post';
-import { transformUserUrls, transformPostUrls } from '../utils/urlHelper';
 import { User as IUser, Post as IPost, ERROR_CODES, PaginationParams } from '@linkedin-clone/shared';
 import mongoose from 'mongoose';
 
@@ -64,7 +63,7 @@ export class UserService {
 
       return {
         success: true,
-        user: transformUserUrls(userProfile),
+        user: userProfile,
       };
     } catch (error) {
       console.error('Get user profile error:', error);
@@ -122,8 +121,8 @@ export class UserService {
         }
       );
 
-      // Convert posts to plain objects with proper typing and ensure HTTPS URLs
-      const postsData: IPost[] = posts.map(post => transformPostUrls({
+      // Convert posts to plain objects with proper typing
+      const postsData: IPost[] = posts.map(post => ({
         _id: post._id.toString(),
         author: {
           _id: (post.author as any)._id.toString(),
@@ -212,7 +211,7 @@ export class UserService {
 
       return {
         success: true,
-        user: transformUserUrls(userObject),
+        user: userObject,
       };
     } catch (error) {
       console.error('Update profile picture error:', error);

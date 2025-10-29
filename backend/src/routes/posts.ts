@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { PostService } from '../services/postService';
 import { authenticate as auth } from '../middleware/auth';
-import { transformPostUrls } from '../utils/urlHelper';
 import { CreatePostRequest, UpdatePostRequest } from '@linkedin-clone/shared';
 
 const router = Router();
@@ -26,7 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      posts: result.posts.map(post => transformPostUrls(post)),
+      posts: result.posts,
       totalCount: result.totalCount,
       page,
       limit,
@@ -71,7 +70,7 @@ router.post('/', auth, async (req: Request, res: Response) => {
 
     res.status(201).json({
       success: true,
-      post: transformPostUrls(post),
+      post,
       message: 'Post created successfully',
     });
   } catch (error) {
@@ -102,7 +101,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      post: transformPostUrls(post),
+      post,
     });
   } catch (error) {
     console.error('Error fetching post:', error);
@@ -153,7 +152,7 @@ router.put('/:id', auth, async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      post: transformPostUrls(updatedPost),
+      post: updatedPost,
       message: 'Post updated successfully',
     });
   } catch (error) {
