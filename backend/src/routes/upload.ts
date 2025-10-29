@@ -24,7 +24,7 @@ router.post('/image', auth, upload.single('image'), async (req: Request, res: Re
 
     // Generate the URL for the uploaded image
     // Hardcoded HTTPS URL for production deployment
-    const baseUrl = 'https://linkedclone.onrender.com/api';
+    const baseUrl = 'https://linkedclone.onrender.com';
     const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     res.status(201).json({
