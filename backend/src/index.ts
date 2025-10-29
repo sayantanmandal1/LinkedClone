@@ -35,7 +35,10 @@ if (isProduction) {
 // CORS configuration
 const corsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    const allowedOrigins = process.env.FRONTEND_URL?.split(',') || ['http://localhost:3000'];
+    const allowedOrigins = process.env.FRONTEND_URL?.split(',') || [
+      'http://*.vercel.app',
+      'https://linked-cloney.vercel.app'
+    ];
 
     // Allow requests with no origin (mobile apps, etc.)
     if (!origin) return callback(null, true);
@@ -45,9 +48,15 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Allow Vercel preview deployments (they have vercel.app domain)
+    if (origin?.includes('vercel.app')) {
+      return callback(null, true);
+    }
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log(`CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
