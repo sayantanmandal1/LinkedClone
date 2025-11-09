@@ -136,7 +136,7 @@ export class ChatService {
     }
 
     // Create the message with expiresAt set to 30 days from now
-    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    const thirtyDaysInMs = 7 * 24 * 60 * 60 * 1000;
     const expiresAt = new Date(Date.now() + thirtyDaysInMs);
     
     const message = await Message.create({

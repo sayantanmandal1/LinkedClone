@@ -28,9 +28,17 @@ export default function ConversationPage() {
       return;
     }
     
-    // Use replace to avoid blocking back navigation
-    router.push(`/messages/${newConversationId}`);
-    setShowList(false); // Close list on mobile after selection
+    // Close list immediately for better UX
+    setShowList(false);
+    
+    // Navigate without blocking
+    try {
+      router.push(`/messages/${newConversationId}`);
+    } catch (err) {
+      console.error('[ConversationPage] Navigation error:', err);
+      // Fallback to direct navigation if router fails
+      window.location.href = `/messages/${newConversationId}`;
+    }
   };
 
   const handleBackToList = () => {
@@ -61,15 +69,16 @@ export default function ConversationPage() {
       if (otherParticipant) {
         setRecipient(otherParticipant);
         // Mark conversation as read when opened (non-blocking)
-        try {
-          markConversationAsRead(conversationId);
-        } catch (err) {
-          console.error('[ConversationPage] Error marking as read:', err);
-          // Don't block navigation on error
-        }
+        setTimeout(() => {
+          try {
+            markConversationAsRead(conversationId);
+          } catch (err) {
+            console.error('[ConversationPage] Error marking as read:', err);
+          }
+        }, 0);
       }
     }
-  }, [conversationId, conversations, user, loading, markConversationAsRead]);
+  }, [conversationId, conversations, user, loading]);
 
   // Show loading state while fetching conversations
   if (loading && conversations.length === 0) {
@@ -177,6 +186,7 @@ export default function ConversationPage() {
                   </button>
                   
                   <ChatWindow
+                    key={conversationId}
                     conversationId={conversationId}
                     recipient={recipient}
                     className="h-full"

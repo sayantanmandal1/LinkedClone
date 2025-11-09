@@ -148,19 +148,18 @@ export default function ConversationList({
           <button
             key={conversation._id}
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               onSelectConversation(conversation._id);
             }}
-            disabled={loading}
             className={cn(
               'flex items-center space-x-3 p-4 hover:bg-gray-50 transition-colors text-left w-full border-b border-gray-100',
-              isSelected && 'bg-blue-50 hover:bg-blue-50 border-l-4 border-l-blue-600',
-              loading && 'pointer-events-none opacity-50'
+              isSelected && 'bg-blue-50 hover:bg-blue-50 border-l-4 border-l-blue-600'
             )}
             aria-label={`Open conversation with ${otherParticipant.name}`}
           >
             {/* Avatar */}
-            <div className="flex-shrink-0 pointer-events-none">
+            <div className="flex-shrink-0">
               <Avatar
                 name={otherParticipant.name}
                 src={otherParticipant.profilePicture}
@@ -169,7 +168,7 @@ export default function ConversationList({
             </div>
 
             {/* Conversation info */}
-            <div className="flex-1 min-w-0 pointer-events-none">
+            <div className="flex-1 min-w-0">
               {/* Name and timestamp */}
               <div className="flex items-baseline justify-between mb-1">
                 <h3

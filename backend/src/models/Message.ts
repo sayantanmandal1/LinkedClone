@@ -80,7 +80,7 @@ messageSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 messageSchema.pre('save', function (next) {
   if (!this.expiresAt) {
     // Set expiration to 30 days from creation
-    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    const thirtyDaysInMs = 7 * 24 * 60 * 60 * 1000;
     this.expiresAt = new Date(Date.now() + thirtyDaysInMs);
   }
   next();
