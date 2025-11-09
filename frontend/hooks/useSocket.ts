@@ -32,14 +32,14 @@ export function useSocket(): UseSocketReturn {
   const hasShownConnectionErrorRef = useRef(false);
   const hasShownAuthErrorRef = useRef(false);
 
-  const clearReconnectTimeout = useCallback(() => {
+  const clearReconnectTimeout = () => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
-  }, []);
+  };
 
-  const attemptReconnect = useCallback(() => {
+  const attemptReconnect = () => {
     if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
       console.error('[Socket] Max reconnection attempts reached');
       setConnectionState('disconnected');
@@ -64,9 +64,9 @@ export function useSocket(): UseSocketReturn {
         setReconnectAttempts(prev => prev + 1);
       }
     }, delay);
-  }, [reconnectAttempts, showToast]);
+  };
 
-  const authenticateSocket = useCallback(async (socket: Socket) => {
+  const authenticateSocket = async (socket: Socket) => {
     let token = tokenManager.getToken();
     
     if (!token) {
@@ -98,7 +98,7 @@ export function useSocket(): UseSocketReturn {
 
     console.log('[Socket] Authenticating connection...');
     socket.emit('authenticate', { token });
-  }, []);
+  };
 
   useEffect(() => {
     // Only initialize socket if user is logged in
@@ -118,13 +118,15 @@ export function useSocket(): UseSocketReturn {
     if (!socketRef.current) {
       console.log('[Socket] Initializing socket connection to:', SOCKET_URL);
       
+      // Don't pass expired token in initial auth
+      const token = tokenManager.getToken();
+      const shouldIncludeToken = token && !tokenManager.isTokenExpired();
+      
       const socket = io(SOCKET_URL, {
         transports: ['websocket', 'polling'],
         autoConnect: true,
         reconnection: false, // We handle reconnection manually
-        auth: {
-          token: tokenManager.getToken()
-        }
+        auth: shouldIncludeToken ? { token } : {}
       });
 
       socketRef.current = socket;
@@ -257,7 +259,7 @@ export function useSocket(): UseSocketReturn {
         isAuthenticatedRef.current = false;
       }
     };
-  }, [user, authenticateSocket, attemptReconnect, clearReconnectTimeout]);
+  }, [user?._id]); // Only re-run when user ID changes (login/logout)
 
   return {
     socket: socketRef.current,

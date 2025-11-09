@@ -60,8 +60,8 @@ export const tokenManager = {
   isTokenExpiringSoon: (): boolean => {
     const expiry = tokenManager.getTokenExpiry();
     if (!expiry) return false;
-    // Consider token expiring soon if less than 2 minutes remaining
-    return (expiry - Date.now()) < (2 * 60 * 1000);
+    // Consider token expiring soon if less than 5 minutes remaining
+    return (expiry - Date.now()) < (5 * 60 * 1000);
   },
 
   isTokenExpired: (): boolean => {

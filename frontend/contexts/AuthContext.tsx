@@ -61,7 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Check if token is expired or expiring soon
+      // Check if token is expired
       if (tokenManager.isTokenExpired()) {
         debugLog('TOKEN_EXPIRED', 'Token has expired, removing');
         tokenManager.removeToken();
@@ -70,8 +70,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      if (tokenManager.isTokenExpiringSoon()) {
-        debugLog('TOKEN_EXPIRING_SOON', 'Refreshing token');
+      // Only refresh on initial load if expiring soon, not on every call
+      // The interval will handle periodic refreshes
+      const isInitialLoad = loading;
+      if (isInitialLoad && tokenManager.isTokenExpiringSoon()) {
+        debugLog('TOKEN_EXPIRING_SOON', 'Refreshing token on initial load');
         const refreshed = await refreshToken();
         if (!refreshed) {
           tokenManager.removeToken();
@@ -153,19 +156,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     refreshUser();
+  }, []);
 
+  useEffect(() => {
     // Set up automatic token refresh every 10 minutes
+    // Only run if user is logged in
+    if (!user) return;
+
     const refreshInterval = setInterval(() => {
-      if (user && tokenManager.getToken()) {
-        debugLog('AUTO_TOKEN_REFRESH', 'Checking token expiry');
-        if (tokenManager.isTokenExpiringSoon()) {
-          refreshToken();
-        }
+      const token = tokenManager.getToken();
+      if (token && tokenManager.isTokenExpiringSoon()) {
+        debugLog('AUTO_TOKEN_REFRESH', 'Refreshing token');
+        refreshToken();
       }
     }, 10 * 60 * 1000); // Check every 10 minutes
 
     return () => clearInterval(refreshInterval);
-  }, [user]);
+  }, [user?._id]); // Only re-run if user ID changes (login/logout)
 
   const value: AuthContextType = {
     user,
