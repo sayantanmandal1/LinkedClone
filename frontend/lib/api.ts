@@ -373,4 +373,43 @@ export const chatApi = {
     fetchApi(`/conversations/users/${userId}/presence`),
 };
 
+// Calls API
+export const callsApi = {
+  /**
+   * Get call history with pagination and optional filters
+   */
+  getCallHistory: (
+    page = 1,
+    limit = 20,
+    filters?: { callType?: 'voice' | 'video'; status?: string }
+  ): Promise<import('./types').CallHistoryResponse> => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (filters?.callType) {
+      params.append('callType', filters.callType);
+    }
+
+    if (filters?.status) {
+      params.append('status', filters.status);
+    }
+
+    return fetchApi(`/calls/history?${params.toString()}`);
+  },
+
+  /**
+   * Get details of a specific call
+   */
+  getCallDetails: (callId: string): Promise<import('./types').CallDetailsResponse> =>
+    fetchApi(`/calls/${callId}`),
+
+  /**
+   * Get call statistics summary
+   */
+  getCallStats: (): Promise<import('./types').CallStatsResponse> =>
+    fetchApi('/calls/stats/summary'),
+};
+
 export { ApiError };

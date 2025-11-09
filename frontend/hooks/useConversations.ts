@@ -214,6 +214,7 @@ export function useConversations(): UseConversationsReturn {
   const markConversationAsRead = useCallback((conversationId: string) => {
     if (!user) return;
 
+    // Update UI immediately (non-blocking)
     setConversations(prev =>
       prev.map(c => {
         if (c._id === conversationId) {

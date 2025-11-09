@@ -1,21 +1,33 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth';
 import ConversationList from '@/components/chat/ConversationList';
 import ConnectionStatus from '@/components/chat/ConnectionStatus';
 import ChatErrorBoundary from '@/components/chat/ChatErrorBoundary';
+import CallHistory from '@/components/call/CallHistory';
 import { useConversations } from '@/hooks/useConversations';
 import { useRouter } from 'next/navigation';
+
+type TabType = 'conversations' | 'calls';
 
 export default function MessagesPage() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const { conversations, loading, error } = useConversations();
+  const [activeTab, setActiveTab] = useState<TabType>('conversations');
 
   const handleSelectConversation = (conversationId: string) => {
-    router.push(`/messages/${conversationId}`);
+    // Navigate without blocking - use push for proper history
+    try {
+      router.push(`/messages/${conversationId}`);
+    } catch (err) {
+      console.error('[MessagesPage] Navigation error:', err);
+      // Fallback to direct navigation if router fails
+      window.location.href = `/messages/${conversationId}`;
+    }
   };
 
   return (
@@ -27,16 +39,46 @@ export default function MessagesPage() {
               {/* Conversation List - Full width on mobile, left column on desktop */}
               <div className="w-full md:w-96 md:border-r border-gray-200 flex flex-col">
                 <div className="px-4 py-4 border-b border-gray-200">
-                  <h1 className="text-xl font-semibold text-gray-900">Messages</h1>
+                  <h1 className="text-xl font-semibold text-gray-900 mb-3">Messages</h1>
+                  
+                  {/* Tab Navigation */}
+                  <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setActiveTab('conversations')}
+                      className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                        activeTab === 'conversations'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Chats
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('calls')}
+                      className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                        activeTab === 'calls'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      Calls
+                    </button>
+                  </div>
                 </div>
-                <ConnectionStatus />
+                
+                {activeTab === 'conversations' && <ConnectionStatus />}
+                
                 <div className="flex-1 overflow-y-auto">
-                  <ConversationList
-                    conversations={conversations}
-                    onSelectConversation={handleSelectConversation}
-                    loading={loading}
-                    error={error}
-                  />
+                  {activeTab === 'conversations' ? (
+                    <ConversationList
+                      conversations={conversations}
+                      onSelectConversation={handleSelectConversation}
+                      loading={loading}
+                      error={error}
+                    />
+                  ) : (
+                    <CallHistory limit={20} showFilters={true} />
+                  )}
                 </div>
               </div>
 

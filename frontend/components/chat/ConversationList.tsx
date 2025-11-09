@@ -97,7 +97,10 @@ export default function ConversationList({
         <h3 className="text-lg font-medium text-gray-900 mb-1">Failed to load conversations</h3>
         <p className="text-sm text-gray-500 text-center mb-4">{error}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={(e) => {
+            e.stopPropagation();
+            window.location.reload();
+          }}
           className="text-sm text-blue-600 hover:text-blue-700 font-medium"
         >
           Retry
@@ -144,14 +147,20 @@ export default function ConversationList({
         return (
           <button
             key={conversation._id}
-            onClick={() => onSelectConversation(conversation._id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectConversation(conversation._id);
+            }}
+            disabled={loading}
             className={cn(
               'flex items-center space-x-3 p-4 hover:bg-gray-50 transition-colors text-left w-full border-b border-gray-100',
-              isSelected && 'bg-blue-50 hover:bg-blue-50 border-l-4 border-l-blue-600'
+              isSelected && 'bg-blue-50 hover:bg-blue-50 border-l-4 border-l-blue-600',
+              loading && 'pointer-events-none opacity-50'
             )}
+            aria-label={`Open conversation with ${otherParticipant.name}`}
           >
             {/* Avatar */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 pointer-events-none">
               <Avatar
                 name={otherParticipant.name}
                 src={otherParticipant.profilePicture}
@@ -160,7 +169,7 @@ export default function ConversationList({
             </div>
 
             {/* Conversation info */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pointer-events-none">
               {/* Name and timestamp */}
               <div className="flex items-baseline justify-between mb-1">
                 <h3

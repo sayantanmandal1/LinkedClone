@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Avatar from '@/components/ui/Avatar';
 import { User } from '@/lib/types';
+import { useUnreadCount } from '@/hooks/useUnreadCount';
 
 interface NavbarProps {
   user?: User | null;
@@ -11,10 +13,16 @@ interface NavbarProps {
 }
 
 export default function Navbar({ user, onLogout }: NavbarProps) {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const { unreadCount } = useUnreadCount();
+
+  const handleMessagesClick = () => {
+    router.push('/messages');
+  };
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -63,6 +71,34 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                 <span className="text-gray-700 hidden md:block text-sm truncate max-w-32">
                   Welcome, {user.name}
                 </span>
+                
+                {/* Message Notification Icon */}
+                <button
+                  onClick={handleMessagesClick}
+                  className="relative p-2 text-gray-600 hover:text-primary-600 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  aria-label="Messages"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                    />
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full min-w-[20px]">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
                 <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -134,7 +170,35 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
           </div>
 
           {/* Mobile menu button */}
-          <div className="sm:hidden flex items-center">
+          <div className="sm:hidden flex items-center space-x-2">
+            {user && (
+              <button
+                onClick={handleMessagesClick}
+                className="relative p-2 text-gray-600 hover:text-primary-600 rounded-full hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+                aria-label="Messages"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                  />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full min-w-[20px]">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
+            
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-colors"

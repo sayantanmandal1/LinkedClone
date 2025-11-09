@@ -167,6 +167,7 @@ import postRoutes from './routes/posts';
 import userRoutes from './routes/users';
 import uploadRoutes from './routes/upload';
 import chatRoutes from './routes/chat';
+import callRoutes from './routes/calls';
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -174,6 +175,7 @@ app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/conversations', chatRoutes);
+app.use('/api/calls', callRoutes);
 
 // Error handling middleware
 app.use(notFound);

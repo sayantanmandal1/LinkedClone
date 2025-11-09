@@ -3,7 +3,9 @@
 import { ReactNode, useEffect } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider, useToast } from '@/contexts/ToastContext';
+import { CallProvider } from '@/contexts/CallContext';
 import ToastContainer from '@/components/ui/ToastContainer';
+import CallManager from '@/components/call/CallManager';
 import { ErrorHandler } from '@/lib/errorHandler';
 
 interface ClientProvidersProps {
@@ -29,9 +31,12 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
   return (
     <ToastProvider>
       <AuthProvider>
-        <ToastInitializer />
-        {children}
-        <ToastContainer />
+        <CallProvider>
+          <ToastInitializer />
+          {children}
+          <ToastContainer />
+          <CallManager />
+        </CallProvider>
       </AuthProvider>
     </ToastProvider>
   );

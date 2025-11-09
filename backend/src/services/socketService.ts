@@ -1,9 +1,11 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
+import mongoose from 'mongoose';
 import { JwtUtils } from '../utils/jwt';
 import { User, UserDocument } from '../models/User';
 import { ChatService } from './chatService';
 import { Message, MessageStatus } from '../models/Message';
 import { Conversation } from '../models/Conversation';
+import { SignalingService } from './signalingService';
 
 /**
  * User presence information stored in memory
@@ -40,6 +42,7 @@ export class SocketService {
   private userPresence: Map<string, UserPresence>;
   private socketToUser: Map<string, string>; // socketId -> userId
   private rateLimits: Map<string, RateLimitEntry>;
+  private signalingService: SignalingService;
   
   // Rate limiting configuration
   private readonly RATE_LIMIT_WINDOW = 60000; // 1 minute in milliseconds
@@ -50,6 +53,7 @@ export class SocketService {
     this.userPresence = new Map();
     this.socketToUser = new Map();
     this.rateLimits = new Map();
+    this.signalingService = new SignalingService();
     
     this.initializeSocketHandlers();
   }
@@ -67,8 +71,8 @@ export class SocketService {
       });
       
       // Handle disconnection
-      socket.on('disconnect', () => {
-        this.handleDisconnection(socket);
+      socket.on('disconnect', async () => {
+        await this.handleDisconnection(socket);
       });
       
       // Message event handlers
@@ -96,6 +100,36 @@ export class SocketService {
       
       socket.on('conversation:close', (data: { conversationId: string }) => {
         this.handleConversationClose(socket, data);
+      });
+
+      // Call signaling handlers
+      socket.on('call:initiate', async (data: { recipientId: string; callType: 'voice' | 'video' }) => {
+        await this.signalingService.handleCallInitiate(socket, this.io, this.userPresence, data);
+      });
+
+      socket.on('call:accept', async (data: { callId: string }) => {
+        await this.signalingService.handleCallAccept(socket, this.io, this.userPresence, data);
+      });
+
+      socket.on('call:decline', async (data: { callId: string }) => {
+        await this.signalingService.handleCallDecline(socket, this.io, this.userPresence, data);
+      });
+
+      socket.on('call:end', async (data: { callId: string }) => {
+        await this.signalingService.handleCallEnd(socket, this.io, this.userPresence, data);
+      });
+
+      // WebRTC signaling handlers
+      socket.on('webrtc:offer', (data: { callId: string; recipientId: string; offer: RTCSessionDescriptionInit }) => {
+        this.signalingService.handleOffer(socket, this.io, this.userPresence, data);
+      });
+
+      socket.on('webrtc:answer', (data: { callId: string; callerId: string; answer: RTCSessionDescriptionInit }) => {
+        this.signalingService.handleAnswer(socket, this.io, this.userPresence, data);
+      });
+
+      socket.on('webrtc:ice-candidate', (data: { callId: string; recipientId: string; candidate: RTCIceCandidateInit }) => {
+        this.signalingService.handleIceCandidate(socket, this.io, this.userPresence, data);
       });
     });
   }
@@ -156,10 +190,13 @@ export class SocketService {
   /**
    * Handle socket disconnection
    */
-  private handleDisconnection(socket: AuthenticatedSocket): void {
+  private async handleDisconnection(socket: AuthenticatedSocket): Promise<void> {
     const userId = socket.userId;
     
     if (userId) {
+      // Clean up any active calls
+      await this.signalingService.handleUserDisconnect(this.io, this.userPresence, userId);
+      
       this.setUserOffline(userId);
       this.socketToUser.delete(socket.id);
       
@@ -495,6 +532,9 @@ export class SocketService {
         );
       }
 
+      // Broadcast unread count update to recipient
+      await this.broadcastUnreadCount(recipientId);
+
       console.log(`📨 Message sent from ${socket.userId} to ${recipientId} in conversation ${conversationId}`);
     } catch (error) {
       console.error('Error handling message send:', error);
@@ -553,6 +593,9 @@ export class SocketService {
             now
           );
         });
+
+        // Broadcast unread count update to the user who read the messages
+        await this.broadcastUnreadCount(socket.userId);
 
         console.log(`✅ ${modifiedCount} messages marked as read in conversation ${conversationId} by user ${socket.userId}`);
       }
@@ -825,5 +868,46 @@ export class SocketService {
   ): 'single' | 'double' | 'blue' {
     const isRecipientOnline = this.isUserOnline(recipientId);
     return ChatService.getMessageTickDisplay(messageStatus, isRecipientOnline);
+  }
+
+  /**
+   * Calculate and broadcast unread count to a user
+   * Counts the number of conversations with unread messages
+   */
+  public async broadcastUnreadCount(userId: string): Promise<void> {
+    try {
+      // Validate ObjectId
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        console.error('[SocketService] Invalid user ID for unread count broadcast:', userId);
+        return;
+      }
+
+      const userObjectId = new mongoose.Types.ObjectId(userId);
+
+      // Find all conversations where user is a participant
+      const conversations = await Conversation.find({ participants: userObjectId });
+
+      // Count conversations with unread messages for this user
+      let unreadCount = 0;
+      conversations.forEach((conversation) => {
+        const userUnreadCount = conversation.unreadCount.get(userId) || 0;
+        if (userUnreadCount > 0) {
+          unreadCount++;
+        }
+      });
+
+      // Get user's socket and emit unread count update
+      const presence = this.userPresence.get(userId);
+      if (presence && presence.isOnline) {
+        this.io.to(presence.socketId).emit('unread:update', {
+          userId,
+          unreadCount,
+        });
+
+        console.log(`📊 Broadcast unread count (${unreadCount}) to user ${userId}`);
+      }
+    } catch (error) {
+      console.error('[SocketService] Error broadcasting unread count:', error);
+    }
   }
 }

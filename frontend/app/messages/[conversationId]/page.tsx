@@ -22,6 +22,13 @@ export default function ConversationPage() {
   const [showList, setShowList] = useState(false);
 
   const handleSelectConversation = (newConversationId: string) => {
+    // Prevent navigation if already on the same conversation
+    if (newConversationId === conversationId) {
+      setShowList(false);
+      return;
+    }
+    
+    // Use replace to avoid blocking back navigation
     router.push(`/messages/${newConversationId}`);
     setShowList(false); // Close list on mobile after selection
   };
@@ -32,7 +39,13 @@ export default function ConversationPage() {
 
   // Find the current conversation and extract recipient
   useEffect(() => {
-    if (!conversationId || !user || conversations.length === 0) {
+    if (!conversationId || !user) {
+      setRecipient(null);
+      return;
+    }
+
+    // Allow navigation even if conversations haven't loaded yet
+    if (conversations.length === 0 && !loading) {
       setRecipient(null);
       return;
     }
@@ -47,11 +60,16 @@ export default function ConversationPage() {
       
       if (otherParticipant) {
         setRecipient(otherParticipant);
-        // Mark conversation as read when opened
-        markConversationAsRead(conversationId);
+        // Mark conversation as read when opened (non-blocking)
+        try {
+          markConversationAsRead(conversationId);
+        } catch (err) {
+          console.error('[ConversationPage] Error marking as read:', err);
+          // Don't block navigation on error
+        }
       }
     }
-  }, [conversationId, conversations, user, markConversationAsRead]);
+  }, [conversationId, conversations, user, loading, markConversationAsRead]);
 
   // Show loading state while fetching conversations
   if (loading && conversations.length === 0) {
@@ -66,8 +84,8 @@ export default function ConversationPage() {
     );
   }
 
-  // Show error if conversation not found
-  if (!loading && conversationId && !recipient) {
+  // Show error if conversation not found (but only after loading completes)
+  if (!loading && conversationId && !recipient && conversations.length > 0) {
     return (
       <ProtectedRoute>
         <Layout user={user!} onLogout={logout}>
@@ -80,8 +98,11 @@ export default function ConversationPage() {
                 This conversation may have been deleted or you don't have access to it.
               </p>
               <button
-                onClick={handleBackToList}
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBackToList();
+                }}
+                className="text-blue-600 hover:text-blue-700 font-medium px-4 py-2 rounded hover:bg-blue-50 transition-colors"
               >
                 Back to messages
               </button>
@@ -95,7 +116,12 @@ export default function ConversationPage() {
   return (
     <ProtectedRoute>
       <Layout user={user!} onLogout={logout}>
-        <ChatErrorBoundary>
+        <ChatErrorBoundary
+          onError={(error, errorInfo) => {
+            console.error('[ConversationPage] Error caught:', error, errorInfo);
+            // Don't block navigation on error
+          }}
+        >
           <div className="max-w-7xl mx-auto h-[calc(100vh-120px)]">
             <div className="bg-white rounded-lg shadow-sm h-full flex">
             {/* Conversation List - Hidden on mobile when chat is open */}
@@ -109,8 +135,12 @@ export default function ConversationPage() {
               <div className="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h1 className="text-xl font-semibold text-gray-900">Messages</h1>
                 <button
-                  onClick={() => setShowList(false)}
-                  className="md:hidden text-gray-500 hover:text-gray-700"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowList(false);
+                  }}
+                  className="md:hidden text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100 transition-colors"
+                  aria-label="Close conversation list"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -134,8 +164,12 @@ export default function ConversationPage() {
                 <>
                   {/* Mobile back button */}
                   <button
-                    onClick={() => setShowList(true)}
-                    className="md:hidden absolute top-4 left-4 z-20 bg-white rounded-full p-2 shadow-md hover:bg-gray-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowList(true);
+                    }}
+                    className="md:hidden absolute top-4 left-4 z-20 bg-white rounded-full p-2 shadow-md hover:bg-gray-50 transition-colors"
+                    aria-label="Show conversation list"
                   >
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

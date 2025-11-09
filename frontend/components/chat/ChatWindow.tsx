@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useConversation } from '@/hooks/useConversation';
 import { useSocket } from '@/hooks/useSocket';
+import { useCall } from '@/contexts/CallContext';
 import { User } from '@/lib/types';
 import { formatRelativeTime, cn } from '@/lib/utils';
 import Avatar from '@/components/ui/Avatar';
@@ -23,6 +24,7 @@ export default function ChatWindow({
   className
 }: ChatWindowProps) {
   const { connectionState } = useSocket();
+  const { initiateCall, callStatus } = useCall();
   const {
     messages,
     loading,
@@ -47,6 +49,9 @@ export default function ChatWindow({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const previousScrollHeightRef = useRef<number>(0);
   const isLoadingMoreRef = useRef(false);
+
+  // Check if user is on a call
+  const isOnCall = callStatus !== 'idle';
 
   // Format online status
   const getOnlineStatus = (): string => {
@@ -137,6 +142,26 @@ export default function ChatWindow({
     }
   };
 
+  // Handle voice call button click
+  const handleVoiceCall = async () => {
+    if (isOnCall) return;
+    try {
+      await initiateCall(recipient._id, 'voice');
+    } catch (error) {
+      console.error('[ChatWindow] Failed to initiate voice call:', error);
+    }
+  };
+
+  // Handle video call button click
+  const handleVideoCall = async () => {
+    if (isOnCall) return;
+    try {
+      await initiateCall(recipient._id, 'video');
+    } catch (error) {
+      console.error('[ChatWindow] Failed to initiate video call:', error);
+    }
+  };
+
   // Scroll to bottom on initial load and when new messages arrive
   useEffect(() => {
     if (!loading && messages.length > 0) {
@@ -181,6 +206,65 @@ export default function ChatWindow({
             )}>
               {getOnlineStatus()}
             </p>
+          </div>
+          
+          {/* Call Buttons */}
+          <div className="flex items-center space-x-2">
+            {/* Voice Call Button */}
+            <button
+              onClick={handleVoiceCall}
+              disabled={isOnCall}
+              className={cn(
+                'p-2 rounded-full transition-colors',
+                isOnCall
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
+              )}
+              title={isOnCall ? 'Already on a call' : 'Voice call'}
+              aria-label="Voice call"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                />
+              </svg>
+            </button>
+
+            {/* Video Call Button */}
+            <button
+              onClick={handleVideoCall}
+              disabled={isOnCall}
+              className={cn(
+                'p-2 rounded-full transition-colors',
+                isOnCall
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
+              )}
+              title={isOnCall ? 'Already on a call' : 'Video call'}
+              aria-label="Video call"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+            </button>
           </div>
         </div>
 

@@ -176,3 +176,49 @@ export interface UserPresence {
   isOnline: boolean;
   lastOnline: string | null;
 }
+
+// Call types
+export type CallType = 'voice' | 'video';
+export type CallStatus = 'initiated' | 'ringing' | 'connected' | 'ended' | 'declined' | 'missed';
+
+export interface Call {
+  _id: string;
+  callId: string;
+  caller: User;
+  recipient: User;
+  callType: CallType;
+  status: CallStatus;
+  startedAt?: string;
+  endedAt?: string;
+  duration: number; // in seconds
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CallHistoryResponse extends ApiResponse {
+  calls?: Call[];
+  pagination?: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}
+
+export interface CallDetailsResponse extends ApiResponse {
+  call?: Call;
+}
+
+export interface CallStats {
+  totalCalls: number;
+  voiceCalls: number;
+  videoCalls: number;
+  connectedCalls: number;
+  missedCalls: number;
+  declinedCalls: number;
+  totalDuration: number; // in seconds
+}
+
+export interface CallStatsResponse extends ApiResponse {
+  stats?: CallStats;
+}
