@@ -42,7 +42,12 @@ export default function ConversationPage() {
   };
 
   const handleBackToList = () => {
-    router.push('/messages');
+    try {
+      router.push('/messages');
+    } catch (err) {
+      console.error('[ConversationPage] Navigation error:', err);
+      window.location.href = '/messages';
+    }
   };
 
   // Find the current conversation and extract recipient
@@ -132,15 +137,14 @@ export default function ConversationPage() {
           }}
         >
           <div className="max-w-7xl mx-auto h-[calc(100vh-120px)]">
-            <div className="bg-white rounded-lg shadow-sm h-full flex">
+            <div className="bg-white rounded-lg shadow-sm h-full flex relative">
             {/* Conversation List - Hidden on mobile when chat is open */}
-            <div className={`
-              ${showList ? 'block' : 'hidden'} 
-              md:block 
-              w-full md:w-96 md:border-r border-gray-200 flex flex-col
-              absolute md:relative inset-0 md:inset-auto z-10 md:z-auto
-              bg-white
-            `}>
+            {(showList || typeof window !== 'undefined' && window.innerWidth >= 768) && (
+              <div className={`
+                w-full md:w-96 md:border-r border-gray-200 flex flex-col
+                ${showList ? 'absolute md:relative' : 'relative'} inset-0 md:inset-auto z-10 md:z-auto
+                bg-white
+              `}>
               <div className="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h1 className="text-xl font-semibold text-gray-900">Messages</h1>
                 <button
@@ -165,7 +169,8 @@ export default function ConversationPage() {
                   error={error}
                 />
               </div>
-            </div>
+              </div>
+            )}
 
             {/* Chat Window - Full width on mobile, right column on desktop */}
             <div className="flex-1 flex flex-col relative">

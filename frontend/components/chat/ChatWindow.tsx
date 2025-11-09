@@ -197,9 +197,16 @@ export default function ChatWindow({
             size="md"
           />
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-semibold text-gray-900 truncate">
-              {recipient.name}
-            </h2>
+            <button
+              onClick={() => {
+                window.location.href = `/profile/${recipient._id}`;
+              }}
+              className="text-left hover:underline focus:outline-none focus:underline"
+            >
+              <h2 className="text-base font-semibold text-gray-900 truncate">
+                {recipient.name}
+              </h2>
+            </button>
             <p className={cn(
               'text-sm',
               recipientPresence?.isOnline ? 'text-green-600' : 'text-gray-500'
