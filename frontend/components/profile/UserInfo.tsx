@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { User } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { uploadApi, usersApi } from '@/lib/api';
+import { uploadApi, usersApi, chatApi } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import Avatar from '@/components/ui/Avatar';
+import Button from '@/components/ui/Button';
 
 interface UserInfoProps {
   user: User;
@@ -14,7 +16,9 @@ interface UserInfoProps {
 export default function UserInfo({ user }: UserInfoProps) {
   const { user: currentUser, refreshUser } = useAuth();
   const { showSuccess, showError } = useToast();
+  const router = useRouter();
   const [uploading, setUploading] = useState(false);
+  const [creatingConversation, setCreatingConversation] = useState(false);
 
   const isOwnProfile = currentUser?._id === user._id;
 
@@ -51,6 +55,27 @@ export default function UserInfo({ user }: UserInfoProps) {
     }
   };
 
+  const handleMessageClick = async () => {
+    if (!currentUser || isOwnProfile) return;
+
+    setCreatingConversation(true);
+    try {
+      // Create or get existing conversation with this user
+      const response = await chatApi.createOrGetConversation(user._id);
+      
+      if (response.success && response.conversation) {
+        // Navigate to messages page with conversation ID
+        router.push(`/messages/${response.conversation._id}`);
+      } else {
+        showError('Failed to open conversation');
+      }
+    } catch (error) {
+      showError('Failed to open conversation');
+    } finally {
+      setCreatingConversation(false);
+    }
+  };
+
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-4 sm:px-6 py-6 sm:py-8">
@@ -81,6 +106,21 @@ export default function UserInfo({ user }: UserInfoProps) {
               <p className="text-sm sm:text-base text-gray-600 mb-1 break-all">
                 {user.email}
               </p>
+              
+              {/* Message Button - Only show if not own profile and user is logged in */}
+              {!isOwnProfile && currentUser && (
+                <div className="mt-3">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={handleMessageClick}
+                    loading={creatingConversation}
+                    disabled={creatingConversation}
+                  >
+                    Message
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* User Statistics */}

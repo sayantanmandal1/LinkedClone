@@ -311,4 +311,32 @@ const normalizeUser = (user: any): User => {
   };
 };
 
+// Chat API
+export const chatApi = {
+  getConversations: (page = 1, limit = 20): Promise<import('./types').ConversationsResponse> =>
+    fetchApi(`/conversations?page=${page}&limit=${limit}`),
+
+  createOrGetConversation: (otherUserId: string): Promise<import('./types').ConversationResponse> =>
+    fetchApi('/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ otherUserId }),
+    }),
+
+  getConversationMessages: (
+    conversationId: string,
+    page = 1,
+    limit = 50
+  ): Promise<import('./types').MessagesResponse> =>
+    fetchApi(`/conversations/${conversationId}/messages?page=${page}&limit=${limit}`),
+
+  sendMessage: (conversationId: string, content: string): Promise<{ success: boolean; message: import('./types').Message }> =>
+    fetchApi(`/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    }),
+
+  getUserPresence: (userId: string): Promise<{ success: boolean; presence: import('./types').UserPresence }> =>
+    fetchApi(`/conversations/users/${userId}/presence`),
+};
+
 export { ApiError };

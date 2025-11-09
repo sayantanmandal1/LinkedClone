@@ -6,6 +6,7 @@ import { User as IUser } from '@linkedin-clone/shared';
 export interface UserDocument extends Omit<IUser, '_id'>, Document {
   _id: mongoose.Types.ObjectId;
   password: string;
+  profilePicture?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -50,7 +51,7 @@ const userSchema = new Schema<UserDocument>(
   {
     timestamps: true,
     toJSON: {
-      transform: function (doc, ret) {
+      transform: function (_doc, ret) {
         // Remove password from JSON output
         const { password, __v, ...cleanRet } = ret;
         return cleanRet;
@@ -63,7 +64,7 @@ const userSchema = new Schema<UserDocument>(
 userSchema.index({ email: 1 }, { unique: true });
 
 // Hash password before saving
-userSchema.pre('save', async function (next) {
+userSchema.pre<UserDocument>('save', async function (next) {
   // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) return next();
 

@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import { connectDB } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
@@ -10,6 +12,7 @@ import { notFound } from './middleware/notFound';
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -68,6 +71,54 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Socket.io configuration with CORS matching Express
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: function (origin, callback) {
+      const allowedOrigins = process.env.FRONTEND_URL?.split(',') || [
+        'http://*.vercel.app',
+        'https://linked-cloney.vercel.app'
+      ];
+
+      // Allow requests with no origin
+      if (!origin) return callback(null, true);
+
+      // In development, allow localhost with any port
+      if (!isProduction && origin?.includes('localhost')) {
+        return callback(null, true);
+      }
+
+      // Allow Vercel preview deployments
+      if (origin?.includes('vercel.app')) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log(`Socket.io CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST']
+  },
+  transports: ['websocket', 'polling'], // WebSocket with polling fallback
+  pingTimeout: 60000,
+  pingInterval: 25000
+});
+
+// Initialize SocketService for real-time communication
+import { SocketService } from './services/socketService';
+const socketService = new SocketService(io);
+
+// Initialize CleanupService for scheduled message cleanup
+import { CleanupService } from './services/cleanupService';
+CleanupService.startScheduledCleanup();
+
+// Export io instance and socketService for use in other modules
+export { io, socketService };
+
 // Body parsing middleware with size limits
 app.use(express.json({
   limit: isProduction ? '5mb' : '10mb',
@@ -108,20 +159,23 @@ import authRoutes from './routes/auth';
 import postRoutes from './routes/posts';
 import userRoutes from './routes/users';
 import uploadRoutes from './routes/upload';
+import chatRoutes from './routes/chat';
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/conversations', chatRoutes);
 
 // Error handling middleware
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔌 Socket.io server ready`);
 });
 
 export default app;

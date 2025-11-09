@@ -94,6 +94,13 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                         >
                           Feed
                         </Link>
+                        <Link
+                          href="/messages"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Messages
+                        </Link>
                         <button
                           onClick={() => {
                             onLogout?.();
@@ -170,6 +177,13 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Profile
+                </Link>
+                <Link
+                  href="/messages"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Messages
                 </Link>
                 <button
                   onClick={() => {

@@ -9,8 +9,7 @@ node_modules/
 .yarn/install-state.gz
 
 # Build outputs
-dist/
-*/dist/
+
 build/
 .next/
 out/
@@ -98,7 +97,7 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+
 
 # Gatsby files
 .cache/
@@ -314,7 +313,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+
 downloads/
 eggs/
 .eggs/

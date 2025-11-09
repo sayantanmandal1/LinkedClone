@@ -114,3 +114,65 @@ export interface UploadResponse extends ApiResponse {
     filename: string;
   };
 }
+
+// Chat types
+export type MessageStatus = 'sent' | 'delivered' | 'seen' | 'pending' | 'failed';
+
+export interface Message {
+  _id: string;
+  conversationId: string;
+  sender: string | User;
+  content: string;
+  status: MessageStatus;
+  deliveredAt?: string;
+  seenAt?: string;
+  createdAt: string;
+  expiresAt: string;
+  retryCount?: number;
+  error?: boolean;
+}
+
+export interface LastMessage {
+  content: string;
+  sender: string | User;
+  createdAt: string;
+}
+
+export interface Conversation {
+  _id: string;
+  participants: User[];
+  lastMessage?: LastMessage;
+  unreadCount: Record<string, number>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConversationsResponse extends ApiResponse {
+  conversations?: Conversation[];
+  pagination?: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}
+
+export interface ConversationResponse extends ApiResponse {
+  conversation?: Conversation;
+}
+
+export interface MessagesResponse extends ApiResponse {
+  messages?: Message[];
+  pagination?: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}
+
+export interface UserPresence {
+  userId: string;
+  isOnline: boolean;
+  lastOnline: string | null;
+}
