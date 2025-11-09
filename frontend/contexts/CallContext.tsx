@@ -92,6 +92,7 @@ export function CallProvider({ children }: CallProviderProps) {
   const callTimerRef = useRef<NodeJS.Timeout | null>(null);
   const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const qualityMonitorRef = useRef<NodeJS.Timeout | null>(null);
+  const currentCallRef = useRef<{ callId: string; recipientId: string } | null>(null);
 
   // Start call duration timer
   const startCallTimer = useCallback(() => {
@@ -227,11 +228,17 @@ export function CallProvider({ children }: CallProviderProps) {
 
       // Set up WebRTC event handlers
       webrtcService.current.onIceCandidate((candidate) => {
-        console.log('[Call] Sending ICE candidate to recipient');
-        socket.emit('webrtc:ice-candidate', {
-          recipientId,
-          candidate: candidate.toJSON(),
-        });
+        // Only send ICE candidates if we have an active call
+        if (currentCallRef.current) {
+          console.log('[Call] Sending ICE candidate to recipient');
+          socket.emit('webrtc:ice-candidate', {
+            callId: currentCallRef.current.callId,
+            recipientId: currentCallRef.current.recipientId,
+            candidate: candidate.toJSON(),
+          });
+        } else {
+          console.log('[Call] Skipping ICE candidate - call not active');
+        }
       });
 
       webrtcService.current.onTrack((remoteStream) => {
@@ -270,6 +277,9 @@ export function CallProvider({ children }: CallProviderProps) {
       const offer = await webrtcService.current.createOffer();
 
       const callId = `call_${Date.now()}_${user._id}_${recipientId}`;
+
+      // Store current call info for ICE candidate handling
+      currentCallRef.current = { callId, recipientId };
 
       // Update state
       setCallState({
@@ -327,6 +337,9 @@ export function CallProvider({ children }: CallProviderProps) {
         showToast(errorMessage, 'error', 5000);
       }
       
+      // Clear current call ref
+      currentCallRef.current = null;
+
       setCallState((prev) => ({
         ...prev,
         error: errorMessage,
@@ -473,6 +486,9 @@ export function CallProvider({ children }: CallProviderProps) {
       });
     }
 
+    // Clear current call ref to stop ICE candidate sending
+    currentCallRef.current = null;
+
     // Stop timers
     stopCallTimer();
     clearCallTimeout();
@@ -558,13 +574,22 @@ export function CallProvider({ children }: CallProviderProps) {
         // Create peer connection
         await webrtcService.current.createPeerConnection();
 
+        // Store current call info for ICE candidate handling
+        currentCallRef.current = { callId: data.callId, recipientId: data.caller._id };
+
         // Set up WebRTC event handlers
         webrtcService.current.onIceCandidate((candidate) => {
-          console.log('[Call] Sending ICE candidate to caller');
-          socket.emit('webrtc:ice-candidate', {
-            recipientId: data.caller._id,
-            candidate: candidate.toJSON(),
-          });
+          // Only send ICE candidates if we have an active call
+          if (currentCallRef.current) {
+            console.log('[Call] Sending ICE candidate to caller');
+            socket.emit('webrtc:ice-candidate', {
+              callId: currentCallRef.current.callId,
+              recipientId: currentCallRef.current.recipientId,
+              candidate: candidate.toJSON(),
+            });
+          } else {
+            console.log('[Call] Skipping ICE candidate - call not active');
+          }
         });
 
         webrtcService.current.onTrack((remoteStream) => {
