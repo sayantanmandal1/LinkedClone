@@ -29,6 +29,7 @@ class ApiError extends Error {
 
 // Token management
 const TOKEN_KEY = 'auth_token';
+const TOKEN_EXPIRY_KEY = 'auth_token_expiry';
 
 export const tokenManager = {
   getToken: (): string | null => {
@@ -39,11 +40,34 @@ export const tokenManager = {
   setToken: (token: string): void => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(TOKEN_KEY, token);
+    // Set expiry time (15 minutes from now)
+    const expiryTime = Date.now() + (15 * 60 * 1000);
+    localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
   },
 
   removeToken: (): void => {
     if (typeof window === 'undefined') return;
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_EXPIRY_KEY);
+  },
+
+  getTokenExpiry: (): number | null => {
+    if (typeof window === 'undefined') return null;
+    const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+    return expiry ? parseInt(expiry, 10) : null;
+  },
+
+  isTokenExpiringSoon: (): boolean => {
+    const expiry = tokenManager.getTokenExpiry();
+    if (!expiry) return false;
+    // Consider token expiring soon if less than 2 minutes remaining
+    return (expiry - Date.now()) < (2 * 60 * 1000);
+  },
+
+  isTokenExpired: (): boolean => {
+    const expiry = tokenManager.getTokenExpiry();
+    if (!expiry) return false;
+    return Date.now() >= expiry;
   }
 };
 
@@ -116,6 +140,16 @@ export const authApi = {
 
   getCurrentUser: async (): Promise<{ success: boolean; user: User }> => {
     const response = await fetchApi<{ success: boolean; user: any }>('/auth/me');
+    return {
+      ...response,
+      user: response.user ? normalizeUser(response.user) : response.user
+    };
+  },
+
+  refreshToken: async (): Promise<AuthResponse> => {
+    const response = await fetchApi<AuthResponse>('/auth/refresh', {
+      method: 'POST',
+    });
     return {
       ...response,
       user: response.user ? normalizeUser(response.user) : response.user

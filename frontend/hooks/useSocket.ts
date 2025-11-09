@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '@/contexts/AuthContext';
-import { tokenManager } from '@/lib/api';
+import { tokenManager, authApi } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 
 type ConnectionState = 'connected' | 'disconnected' | 'reconnecting';
@@ -66,13 +66,34 @@ export function useSocket(): UseSocketReturn {
     }, delay);
   }, [reconnectAttempts, showToast]);
 
-  const authenticateSocket = useCallback((socket: Socket) => {
-    const token = tokenManager.getToken();
+  const authenticateSocket = useCallback(async (socket: Socket) => {
+    let token = tokenManager.getToken();
     
     if (!token) {
       console.error('[Socket] No authentication token available');
       socket.disconnect();
       return;
+    }
+
+    // Check if token is expiring soon and refresh if needed
+    if (tokenManager.isTokenExpiringSoon() || tokenManager.isTokenExpired()) {
+      console.log('[Socket] Token expiring soon, refreshing before authentication');
+      try {
+        const response = await authApi.refreshToken();
+        if (response.success && response.token) {
+          tokenManager.setToken(response.token);
+          token = response.token;
+          console.log('[Socket] Token refreshed successfully');
+        } else {
+          console.error('[Socket] Token refresh failed');
+          socket.disconnect();
+          return;
+        }
+      } catch (error) {
+        console.error('[Socket] Token refresh error:', error);
+        socket.disconnect();
+        return;
+      }
     }
 
     console.log('[Socket] Authenticating connection...');
@@ -173,13 +194,29 @@ export function useSocket(): UseSocketReturn {
         setReconnectAttempts(0); // Reset attempts on successful auth
       });
 
-      socket.on('error', (error) => {
+      socket.on('error', async (error) => {
         console.error('[Socket] Socket error:', error);
         
         // Check if it's an authentication error
-        if (error.message && error.message.includes('auth')) {
-          console.error('[Socket] Authentication failed, disconnecting');
+        if (error.message && (error.message.includes('auth') || error.message.includes('expired'))) {
+          console.error('[Socket] Authentication failed, attempting token refresh');
           isAuthenticatedRef.current = false;
+          
+          // Try to refresh the token
+          try {
+            const response = await authApi.refreshToken();
+            if (response.success && response.token) {
+              tokenManager.setToken(response.token);
+              console.log('[Socket] Token refreshed, re-authenticating');
+              authenticateSocket(socket);
+              hasShownAuthErrorRef.current = false; // Reset error flag
+              return;
+            }
+          } catch (refreshError) {
+            console.error('[Socket] Token refresh failed:', refreshError);
+          }
+          
+          // If refresh failed, disconnect
           socket.disconnect();
           setConnectionState('disconnected');
           setError('Authentication failed. Please log in again.');
@@ -191,7 +228,6 @@ export function useSocket(): UseSocketReturn {
           }
           
           // Don't attempt reconnection on auth failure
-          // User needs to re-login
           setReconnectAttempts(MAX_RECONNECT_ATTEMPTS);
         } else {
           setError(`Socket error: ${error.message || 'Unknown error'}`);

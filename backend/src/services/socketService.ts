@@ -134,10 +134,21 @@ export class SocketService {
       
       console.log(`✅ Socket authenticated: ${socket.id} (User: ${user.name})`);
     } catch (error) {
-      console.error('Socket authentication error:', error);
-      socket.emit('error', { 
-        message: error instanceof Error ? error.message : 'Authentication failed' 
-      });
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+      console.error('Socket authentication error:', errorMessage);
+      
+      // Provide specific error message for token expiration
+      if (errorMessage.includes('expired')) {
+        socket.emit('error', { 
+          message: 'Token has expired. Please refresh your session.',
+          code: 'TOKEN_EXPIRED'
+        });
+      } else {
+        socket.emit('error', { 
+          message: errorMessage,
+          code: 'AUTH_FAILED'
+        });
+      }
       socket.disconnect();
     }
   }

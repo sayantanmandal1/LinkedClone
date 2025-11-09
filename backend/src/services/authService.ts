@@ -184,4 +184,49 @@ export class AuthService {
       };
     }
   }
+
+  /**
+   * Refresh access token for authenticated user
+   */
+  static async refreshToken(userId: string): Promise<AuthResponse> {
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return {
+          success: false,
+          message: 'User not found',
+          code: ERROR_CODES.NOT_FOUND_ERROR,
+        };
+      }
+
+      // Generate new JWT token
+      const token = JwtUtils.generateToken({
+        userId: user._id.toString(),
+        email: user.email,
+      });
+
+      const userObject: IUser = {
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+
+      return {
+        success: true,
+        user: userObject,
+        token,
+        message: 'Token refreshed successfully',
+      };
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      return {
+        success: false,
+        message: 'Token refresh failed due to server error',
+        code: ERROR_CODES.SERVER_ERROR,
+      };
+    }
+  }
 }

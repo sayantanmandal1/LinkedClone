@@ -120,4 +120,31 @@ router.get('/me', authenticate, async (req: Request, res: Response<AuthResponse 
   }
 });
 
+// POST /api/auth/refresh - Refresh access token
+router.post('/refresh', authenticate, async (req: Request, res: Response<AuthResponse>) => {
+  try {
+    if (!req.user) {
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+        success: false,
+        message: 'User not authenticated',
+      });
+    }
+
+    // Generate a new token for the authenticated user
+    const result = await AuthService.refreshToken(req.user._id.toString());
+
+    if (result.success) {
+      return res.status(HTTP_STATUS.OK).json(result);
+    } else {
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json(result);
+    }
+  } catch (error) {
+    console.error('Token refresh route error:', error);
+    return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: 'Token refresh failed due to server error',
+    });
+  }
+});
+
 export default router;

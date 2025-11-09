@@ -32,6 +32,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshToken = async () => {
+    try {
+      const response = await authApi.refreshToken();
+      debugLog('TOKEN_REFRESH_RESPONSE', response);
+      
+      if (response.success && response.token) {
+        tokenManager.setToken(response.token);
+        if (response.user) {
+          setUser(response.user);
+        }
+        return true;
+      }
+      return false;
+    } catch (error) {
+      debugError('TOKEN_REFRESH_ERROR', error);
+      return false;
+    }
+  };
+
   const refreshUser = async () => {
     try {
       // Only try to get current user if we have a token
@@ -40,6 +59,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(null);
         setLoading(false);
         return;
+      }
+
+      // Check if token is expired or expiring soon
+      if (tokenManager.isTokenExpired()) {
+        debugLog('TOKEN_EXPIRED', 'Token has expired, removing');
+        tokenManager.removeToken();
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      if (tokenManager.isTokenExpiringSoon()) {
+        debugLog('TOKEN_EXPIRING_SOON', 'Refreshing token');
+        const refreshed = await refreshToken();
+        if (!refreshed) {
+          tokenManager.removeToken();
+          setUser(null);
+          setLoading(false);
+          return;
+        }
       }
 
       const response = await authApi.getCurrentUser();
@@ -114,7 +153,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     refreshUser();
-  }, []);
+
+    // Set up automatic token refresh every 10 minutes
+    const refreshInterval = setInterval(() => {
+      if (user && tokenManager.getToken()) {
+        debugLog('AUTO_TOKEN_REFRESH', 'Checking token expiry');
+        if (tokenManager.isTokenExpiringSoon()) {
+          refreshToken();
+        }
+      }
+    }, 10 * 60 * 1000); // Check every 10 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, [user]);
 
   const value: AuthContextType = {
     user,
