@@ -1,7 +1,8 @@
 import { Socket } from 'socket.io';
 import mongoose from 'mongoose';
-import { Call, CallDocument, CallStatus, CallType } from '../models/Call';
+import { Call, CallStatus, CallType } from '../models/Call';
 import { v4 as uuidv4 } from 'uuid';
+import { RTCSessionDescriptionInit, RTCIceCandidateInit } from '../types/webrtc';
 
 /**
  * Extended Socket interface with authenticated user

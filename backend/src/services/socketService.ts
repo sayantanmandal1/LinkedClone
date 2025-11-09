@@ -6,6 +6,7 @@ import { ChatService } from './chatService';
 import { Message, MessageStatus } from '../models/Message';
 import { Conversation } from '../models/Conversation';
 import { SignalingService } from './signalingService';
+import { RTCSessionDescriptionInit, RTCIceCandidateInit } from '../types/webrtc';
 
 /**
  * User presence information stored in memory
