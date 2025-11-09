@@ -135,12 +135,16 @@ export class ChatService {
       throw new Error('User is not a participant in this conversation');
     }
 
-    // Create the message
+    // Create the message with expiresAt set to 30 days from now
+    const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+    const expiresAt = new Date(Date.now() + thirtyDaysInMs);
+    
     const message = await Message.create({
       conversationId: conversationObjectId,
       sender: senderObjectId,
       content: content.trim(),
       status: 'sent',
+      expiresAt,
     });
 
     // Update conversation's lastMessage field atomically
