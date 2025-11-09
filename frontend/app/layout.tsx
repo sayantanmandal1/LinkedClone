@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LinkedIn Clone",
+  title: "VibeNet",
   description: "A social media platform similar to LinkedIn",
 };
 

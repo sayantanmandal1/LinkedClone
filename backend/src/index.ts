@@ -156,7 +156,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), {
 app.get('/api/health', (_req, res) => {
   res.json({
     success: true,
-    message: 'LinkedIn Clone API is running',
+    message: 'VibeNet API is running',
     timestamp: new Date().toISOString()
   });
 });

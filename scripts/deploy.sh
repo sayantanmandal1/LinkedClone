@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Production deployment script for LinkedIn Clone
+# Production deployment script for VibeNet
 
 set -e
 

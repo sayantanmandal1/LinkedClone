@@ -4,8 +4,8 @@ import { PublicOnlyRoute } from '@/components/auth';
 import SignupForm from '@/components/auth/SignupForm';
 
 export const metadata: Metadata = {
-  title: 'Sign Up - LinkedIn Clone',
-  description: 'Create your LinkedIn Clone account',
+  title: 'Sign Up - VibeNet',
+  description: 'Create your VibeNet account',
 };
 
 export default function SignupPage() {

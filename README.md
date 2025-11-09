@@ -1,4 +1,4 @@
-# LinkedIn Clone - Monorepo
+# VibeNet - Monorepo
 
 A full-stack social media application similar to LinkedIn, built with Next.js, Express.js, and MongoDB.
 

@@ -21,7 +21,7 @@ export default function Home() {
     <Layout user={user} onLogout={logout}>
       <div className="text-center py-8 sm:py-12 px-4">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-          Welcome to LinkedIn Clone
+          Welcome to VibeNet
         </h1>
         <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed">
           Connect with professionals, share your thoughts, and build your network.

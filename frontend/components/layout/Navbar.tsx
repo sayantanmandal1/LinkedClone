@@ -51,7 +51,7 @@ export default function Navbar({ user, onLogout }: NavbarProps) {
           <div className="flex items-center">
             <Link href="/" className="shrink-0">
               <h1 className="text-lg sm:text-xl font-bold text-primary-600 truncate">
-                LinkedIn Clone
+                VibeNet
               </h1>
             </Link>
           </div>
