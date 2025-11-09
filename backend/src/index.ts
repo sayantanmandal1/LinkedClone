@@ -38,30 +38,33 @@ if (isProduction) {
 // CORS configuration
 const corsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    const allowedOrigins = process.env.FRONTEND_URL?.split(',') || [
-      'http://*.vercel.app',
-      'https://linked-cloney.vercel.app'
-    ];
-
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) {
+      console.log('[CORS] Allowing request with no origin');
+      return callback(null, true);
+    }
 
     // In development, allow localhost with any port
     if (!isProduction && origin?.includes('localhost')) {
+      console.log(`[CORS] Allowing localhost origin: ${origin}`);
       return callback(null, true);
     }
 
-    // Allow Vercel preview deployments (they have vercel.app domain)
+    // Allow all Vercel deployments (production and preview)
     if (origin?.includes('vercel.app')) {
+      console.log(`[CORS] Allowing Vercel origin: ${origin}`);
       return callback(null, true);
     }
 
+    // Check environment variable for additional allowed origins
+    const allowedOrigins = process.env.FRONTEND_URL?.split(',') || [];
     if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log(`CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      console.log(`[CORS] Allowing configured origin: ${origin}`);
+      return callback(null, true);
     }
+
+    console.log(`[CORS] Blocked origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -75,35 +78,39 @@ app.use(cors(corsOptions));
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: function (origin, callback) {
-      const allowedOrigins = process.env.FRONTEND_URL?.split(',') || [
-        'http://*.vercel.app',
-        'https://linked-cloney.vercel.app'
-      ];
-
-      // Allow requests with no origin
-      if (!origin) return callback(null, true);
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) {
+        console.log('[Socket.io] Allowing request with no origin');
+        return callback(null, true);
+      }
 
       // In development, allow localhost with any port
       if (!isProduction && origin?.includes('localhost')) {
+        console.log(`[Socket.io] Allowing localhost origin: ${origin}`);
         return callback(null, true);
       }
 
-      // Allow Vercel preview deployments
+      // Allow all Vercel deployments (production and preview)
       if (origin?.includes('vercel.app')) {
+        console.log(`[Socket.io] Allowing Vercel origin: ${origin}`);
         return callback(null, true);
       }
 
+      // Check environment variable for additional allowed origins
+      const allowedOrigins = process.env.FRONTEND_URL?.split(',') || [];
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log(`Socket.io CORS blocked origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
+        console.log(`[Socket.io] Allowing configured origin: ${origin}`);
+        return callback(null, true);
       }
+
+      console.log(`[Socket.io] CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST']
   },
   transports: ['websocket', 'polling'], // WebSocket with polling fallback
+  allowEIO3: true, // Enable compatibility with Socket.IO v2 clients
   pingTimeout: 60000,
   pingInterval: 25000
 });
