@@ -273,17 +273,9 @@ export function CallProvider({ children }: CallProviderProps) {
         }
       });
 
-      // Create and send offer
-      const offer = await webrtcService.current.createOffer();
-
-      const callId = `call_${Date.now()}_${user._id}_${recipientId}`;
-
-      // Store current call info for ICE candidate handling
-      currentCallRef.current = { callId, recipientId };
-
-      // Update state
+      // Update state to calling (without callId yet)
       setCallState({
-        callId,
+        callId: null, // Will be set when we receive call:initiated
         callType,
         callStatus: 'calling',
         localStream,
@@ -291,22 +283,21 @@ export function CallProvider({ children }: CallProviderProps) {
         isMuted: false,
         isVideoEnabled: callType === 'video',
         caller: user,
-        recipient: null, // Will be populated when recipient accepts
+        recipient: null,
         error: null,
         callDuration: 0,
         connectionQuality: 'unknown',
       });
 
-      // Send call initiation to server
+      // Send call initiation to server (without offer)
       socket.emit('call:initiate', {
-        callId,
         recipientId,
         callType,
-        offer,
       });
 
-      // Start timeout timer
-      startCallTimeout();
+      // The server will respond with call:initiated event containing the callId
+      // Then we'll create and send the offer
+      console.log('[Call] Call initiation request sent to server');
 
       console.log('[Call] Call initiated successfully');
     } catch (error: any) {
@@ -665,6 +656,47 @@ export function CallProvider({ children }: CallProviderProps) {
       }
     };
 
+    // Call initiated (response from server with callId)
+    const handleCallInitiated = async (data: {
+      callId: string;
+      recipientId: string;
+      callType: CallType;
+      status: string;
+    }) => {
+      console.log('[Call] Call initiated on server:', data.callId);
+      
+      try {
+        // Store current call info for ICE candidate handling
+        currentCallRef.current = { callId: data.callId, recipientId: data.recipientId };
+
+        // Create and send offer
+        const offer = await webrtcService.current.createOffer();
+
+        // Update state with callId
+        setCallState((prev) => ({
+          ...prev,
+          callId: data.callId,
+          callStatus: 'calling',
+        }));
+
+        // Send offer to recipient via server
+        socket.emit('webrtc:offer', {
+          callId: data.callId,
+          recipientId: data.recipientId,
+          offer,
+        });
+
+        // Start timeout timer
+        startCallTimeout();
+
+        console.log('[Call] Offer sent to recipient');
+      } catch (error) {
+        console.error('[Call] Failed to create/send offer:', error);
+        showToast('Failed to establish call connection', 'error');
+        endCall();
+      }
+    };
+
     // Call declined
     const handleCallDeclined = () => {
       console.log('[Call] Call declined');
@@ -746,6 +778,7 @@ export function CallProvider({ children }: CallProviderProps) {
     };
 
     // Register event listeners
+    socket.on('call:initiated', handleCallInitiated);
     socket.on('call:ringing', handleIncomingCall);
     socket.on('call:accepted', handleCallAccepted);
     socket.on('call:declined', handleCallDeclined);
@@ -756,6 +789,7 @@ export function CallProvider({ children }: CallProviderProps) {
 
     // Cleanup
     return () => {
+      socket.off('call:initiated', handleCallInitiated);
       socket.off('call:ringing', handleIncomingCall);
       socket.off('call:accepted', handleCallAccepted);
       socket.off('call:declined', handleCallDeclined);
