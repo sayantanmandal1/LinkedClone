@@ -3,6 +3,7 @@
 import { useCall } from '@/contexts/CallContext';
 import { useAuth } from '@/contexts/AuthContext';
 import IncomingCallNotification from './IncomingCallNotification';
+import CallingScreen from './CallingScreen';
 import VoiceCallInterface from './VoiceCallInterface';
 import VideoCallInterface from './VideoCallInterface';
 
@@ -40,8 +41,19 @@ export default function CallManager() {
     );
   }
 
-  // Render voice call interface for voice calls (both calling and connected states)
-  if ((callStatus === 'calling' || callStatus === 'connected') && callType === 'voice') {
+  // Render calling screen when initiating a call (waiting for recipient to answer)
+  if (callStatus === 'calling' && recipient) {
+    return (
+      <CallingScreen
+        recipient={recipient}
+        callType={callType!}
+        onCancel={endCall}
+      />
+    );
+  }
+
+  // Render voice call interface for voice calls (connected state only)
+  if (callStatus === 'connected' && callType === 'voice') {
     // Determine the other participant
     // If we're the caller, show recipient; if we're the recipient, show caller
     let participant = null;
@@ -75,8 +87,8 @@ export default function CallManager() {
     }
   }
 
-  // Render video call interface for video calls (both calling and connected states)
-  if ((callStatus === 'calling' || callStatus === 'connected') && callType === 'video') {
+  // Render video call interface for video calls (connected state only)
+  if (callStatus === 'connected' && callType === 'video') {
     // Determine the other participant
     // If we're the caller, show recipient; if we're the recipient, show caller
     let participant = null;

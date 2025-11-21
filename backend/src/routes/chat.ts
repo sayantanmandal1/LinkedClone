@@ -399,7 +399,8 @@ router.post('/admin/cleanup', authenticate, async (req: Request, res: Response) 
       success: true,
       message: 'Manual cleanup completed',
       result: {
-        expiredMessagesCount: result.expiredCount,
+        expiredMessagesCount: result.expiredMessages,
+        expiredCallsCount: result.expiredCalls,
         duration: `${result.duration}ms`,
         timestamp: result.timestamp,
       },
@@ -439,11 +440,20 @@ router.get('/admin/cleanup/stats', authenticate, async (req: Request, res: Respo
     return res.status(HTTP_STATUS.OK).json({
       success: true,
       stats: {
-        totalMessages: stats.totalMessages,
-        activeMessages: stats.activeMessages,
-        expiredMessages: stats.expiredMessages,
-        oldestMessage: stats.oldestMessage,
-        newestMessage: stats.newestMessage,
+        messages: {
+          totalMessages: stats.messages.totalMessages,
+          activeMessages: stats.messages.activeMessages,
+          expiredMessages: stats.messages.expiredMessages,
+          oldestMessage: stats.messages.oldestMessage,
+          newestMessage: stats.messages.newestMessage,
+        },
+        calls: {
+          totalCalls: stats.calls.totalCalls,
+          activeCalls: stats.calls.activeCalls,
+          expiredCalls: stats.calls.expiredCalls,
+          oldestCall: stats.calls.oldestCall,
+          newestCall: stats.calls.newestCall,
+        },
       },
     });
   } catch (error) {

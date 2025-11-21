@@ -3,6 +3,7 @@
 import { Call, CallType, CallStatus } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCallHistory } from '@/hooks/useCallHistory';
+import { useCall } from '@/contexts/CallContext';
 import Avatar from '@/components/ui/Avatar';
 
 interface CallHistoryProps {
@@ -12,6 +13,7 @@ interface CallHistoryProps {
 
 export default function CallHistory({ limit = 20, showFilters = true }: CallHistoryProps) {
   const { user } = useAuth();
+  const { initiateCall } = useCall();
   const {
     calls,
     loading,
@@ -117,6 +119,11 @@ export default function CallHistory({ limit = 20, showFilters = true }: CallHist
     return call.caller._id === user?._id ? call.recipient : call.caller;
   };
 
+  const handleCallBack = (call: Call, callType: CallType) => {
+    const otherParticipant = getOtherParticipant(call);
+    initiateCall(otherParticipant._id, callType);
+  };
+
   if (loading && calls.length === 0) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -182,7 +189,7 @@ export default function CallHistory({ limit = 20, showFilters = true }: CallHist
           return (
             <div
               key={call._id}
-              className="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="px-4 py-3 hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <Avatar
@@ -202,8 +209,33 @@ export default function CallHistory({ limit = 20, showFilters = true }: CallHist
                     <span>{getCallStatusText(call)}</span>
                   </div>
                 </div>
-                <div className="text-xs text-gray-400">
-                  {formatCallTime(call.createdAt)}
+                <div className="flex items-center gap-2">
+                  <div className="text-xs text-gray-400">
+                    {formatCallTime(call.createdAt)}
+                  </div>
+                  {/* Call back buttons */}
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleCallBack(call, 'voice')}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                      title="Voice call"
+                      aria-label="Voice call"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleCallBack(call, 'video')}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                      title="Video call"
+                      aria-label="Video call"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

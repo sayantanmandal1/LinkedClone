@@ -1,9 +1,10 @@
 import * as cron from 'node-cron';
 import { Message } from '../models/Message';
+import { Call } from '../models/Call';
 
 /**
- * CleanupService handles scheduled cleanup operations for the chat system
- * Primarily manages automatic deletion of expired messages using MongoDB TTL index
+ * CleanupService handles scheduled cleanup operations for the system
+ * Manages automatic deletion of expired messages and call logs using MongoDB TTL indexes
  */
 export class CleanupService {
   private static scheduledTask: cron.ScheduledTask | null = null;
@@ -48,39 +49,47 @@ export class CleanupService {
   }
 
   /**
-   * Perform manual cleanup of expired messages
-   * This method relies on MongoDB's TTL index for automatic deletion
-   * It primarily serves to log the cleanup operation and verify TTL index is working
+   * Perform manual cleanup of expired messages and call logs
+   * This method relies on MongoDB's TTL indexes for automatic deletion
+   * It primarily serves to log the cleanup operation and verify TTL indexes are working
    * 
-   * @returns Number of messages that were eligible for deletion
+   * @returns Object containing counts of expired messages and calls
    */
-  static async performCleanup(): Promise<number> {
+  static async performCleanup(): Promise<{ messages: number; calls: number }> {
     const startTime = Date.now();
     const now = new Date();
 
     try {
       // Count messages that should be expired (expiresAt <= now)
       // MongoDB's TTL index handles actual deletion automatically
-      const expiredCount = await Message.countDocuments({
+      const expiredMessagesCount = await Message.countDocuments({
         expiresAt: { $lte: now }
+      });
+
+      // Count call logs older than 24 hours
+      // MongoDB's TTL index handles actual deletion automatically
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const expiredCallsCount = await Call.countDocuments({
+        createdAt: { $lte: twentyFourHoursAgo }
       });
 
       // Log cleanup operation details
       const duration = Date.now() - startTime;
       
-      if (expiredCount > 0) {
-        console.log(`🧹 Message cleanup completed:`);
-        console.log(`   - Messages eligible for deletion: ${expiredCount}`);
+      if (expiredMessagesCount > 0 || expiredCallsCount > 0) {
+        console.log(`🧹 Cleanup completed:`);
+        console.log(`   - Messages eligible for deletion: ${expiredMessagesCount}`);
+        console.log(`   - Call logs eligible for deletion: ${expiredCallsCount}`);
         console.log(`   - Cleanup duration: ${duration}ms`);
         console.log(`   - Timestamp: ${now.toISOString()}`);
-        console.log(`   - Note: MongoDB TTL index handles automatic deletion`);
+        console.log(`   - Note: MongoDB TTL indexes handle automatic deletion`);
       } else {
-        console.log(`✨ No expired messages found during cleanup check`);
+        console.log(`✨ No expired data found during cleanup check`);
         console.log(`   - Cleanup duration: ${duration}ms`);
         console.log(`   - Timestamp: ${now.toISOString()}`);
       }
 
-      return expiredCount;
+      return { messages: expiredMessagesCount, calls: expiredCallsCount };
     } catch (error) {
       const duration = Date.now() - startTime;
       console.error(`❌ Cleanup operation failed after ${duration}ms:`, error);
@@ -89,40 +98,68 @@ export class CleanupService {
   }
 
   /**
-   * Get statistics about message retention
+   * Get statistics about message and call log retention
    * Useful for monitoring and debugging
    * 
-   * @returns Object containing message statistics
+   * @returns Object containing message and call statistics
    */
   static async getCleanupStats(): Promise<{
-    totalMessages: number;
-    expiredMessages: number;
-    activeMessages: number;
-    oldestMessage: Date | null;
-    newestMessage: Date | null;
+    messages: {
+      totalMessages: number;
+      expiredMessages: number;
+      activeMessages: number;
+      oldestMessage: Date | null;
+      newestMessage: Date | null;
+    };
+    calls: {
+      totalCalls: number;
+      expiredCalls: number;
+      activeCalls: number;
+      oldestCall: Date | null;
+      newestCall: Date | null;
+    };
   }> {
     const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const [
       totalMessages,
       expiredMessages,
       oldestMessageDoc,
-      newestMessageDoc
+      newestMessageDoc,
+      totalCalls,
+      expiredCalls,
+      oldestCallDoc,
+      newestCallDoc
     ] = await Promise.all([
       Message.countDocuments(),
       Message.countDocuments({ expiresAt: { $lte: now } }),
       Message.findOne().sort({ createdAt: 1 }).select('createdAt'),
-      Message.findOne().sort({ createdAt: -1 }).select('createdAt')
+      Message.findOne().sort({ createdAt: -1 }).select('createdAt'),
+      Call.countDocuments(),
+      Call.countDocuments({ createdAt: { $lte: twentyFourHoursAgo } }),
+      Call.findOne().sort({ createdAt: 1 }).select('createdAt'),
+      Call.findOne().sort({ createdAt: -1 }).select('createdAt')
     ]);
 
     const activeMessages = totalMessages - expiredMessages;
+    const activeCalls = totalCalls - expiredCalls;
 
     return {
-      totalMessages,
-      expiredMessages,
-      activeMessages,
-      oldestMessage: oldestMessageDoc?.createdAt || null,
-      newestMessage: newestMessageDoc?.createdAt || null
+      messages: {
+        totalMessages,
+        expiredMessages,
+        activeMessages,
+        oldestMessage: oldestMessageDoc?.createdAt || null,
+        newestMessage: newestMessageDoc?.createdAt || null
+      },
+      calls: {
+        totalCalls,
+        expiredCalls,
+        activeCalls,
+        oldestCall: oldestCallDoc?.createdAt || null,
+        newestCall: newestCallDoc?.createdAt || null
+      }
     };
   }
 
@@ -133,7 +170,8 @@ export class CleanupService {
    * @returns Cleanup statistics
    */
   static async forceCleanup(): Promise<{
-    expiredCount: number;
+    expiredMessages: number;
+    expiredCalls: number;
     duration: number;
     timestamp: Date;
   }> {
@@ -141,11 +179,12 @@ export class CleanupService {
     const startTime = Date.now();
     const timestamp = new Date();
 
-    const expiredCount = await this.performCleanup();
+    const { messages, calls } = await this.performCleanup();
     const duration = Date.now() - startTime;
 
     return {
-      expiredCount,
+      expiredMessages: messages,
+      expiredCalls: calls,
       duration,
       timestamp
     };

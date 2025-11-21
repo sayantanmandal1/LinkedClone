@@ -7,7 +7,7 @@ interface AvatarProps {
   src?: string;
   alt?: string;
   name?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
   className?: string;
   onClick?: () => void;
   editable?: boolean;
@@ -20,6 +20,7 @@ const sizeClasses = {
   lg: 'w-12 h-12 text-base',
   xl: 'w-16 h-16 text-lg',
   '2xl': 'w-32 h-32 text-2xl',
+  '3xl': 'w-40 h-40 text-3xl',
 };
 
 export default function Avatar({ 

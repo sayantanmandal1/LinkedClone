@@ -105,31 +105,38 @@ export class SocketService {
 
       // Call signaling handlers
       socket.on('call:initiate', async (data: { recipientId: string; callType: 'voice' | 'video' }) => {
+        console.log('🎯 [SOCKET] Received call:initiate event', { socketId: socket.id, data });
         await this.signalingService.handleCallInitiate(socket, this.io, this.userPresence, data);
       });
 
       socket.on('call:accept', async (data: { callId: string; answer: RTCSessionDescriptionInit }) => {
+        console.log('🎯 [SOCKET] Received call:accept event', { socketId: socket.id, callId: data.callId });
         await this.signalingService.handleCallAccept(socket, this.io, this.userPresence, data);
       });
 
       socket.on('call:decline', async (data: { callId: string }) => {
+        console.log('🎯 [SOCKET] Received call:decline event', { socketId: socket.id, callId: data.callId });
         await this.signalingService.handleCallDecline(socket, this.io, this.userPresence, data);
       });
 
       socket.on('call:end', async (data: { callId: string }) => {
+        console.log('🎯 [SOCKET] Received call:end event', { socketId: socket.id, callId: data.callId });
         await this.signalingService.handleCallEnd(socket, this.io, this.userPresence, data);
       });
 
       // WebRTC signaling handlers
       socket.on('webrtc:offer', (data: { callId: string; recipientId: string; offer: RTCSessionDescriptionInit }) => {
+        console.log('🎯 [SOCKET] Received webrtc:offer event', { socketId: socket.id, callId: data.callId });
         this.signalingService.handleOffer(socket, this.io, this.userPresence, data);
       });
 
       socket.on('webrtc:answer', (data: { callId: string; callerId: string; answer: RTCSessionDescriptionInit }) => {
+        console.log('🎯 [SOCKET] Received webrtc:answer event', { socketId: socket.id, callId: data.callId });
         this.signalingService.handleAnswer(socket, this.io, this.userPresence, data);
       });
 
       socket.on('webrtc:ice-candidate', (data: { callId: string; recipientId: string; candidate: RTCIceCandidateInit }) => {
+        console.log('🎯 [SOCKET] Received webrtc:ice-candidate event', { socketId: socket.id, callId: data.callId });
         this.signalingService.handleIceCandidate(socket, this.io, this.userPresence, data);
       });
     });

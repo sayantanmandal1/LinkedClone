@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 // Call status type
-export type CallStatus = 'initiated' | 'ringing' | 'connected' | 'ended' | 'declined' | 'missed';
+export type CallStatus = 'initiated' | 'ringing' | 'connected' | 'ended' | 'declined' | 'missed' | 'failed';
 
 // Call type
 export type CallType = 'voice' | 'video';
@@ -48,7 +48,7 @@ const callSchema = new Schema<CallDocument>(
     },
     status: {
       type: String,
-      enum: ['initiated', 'ringing', 'connected', 'ended', 'declined', 'missed'],
+      enum: ['initiated', 'ringing', 'connected', 'ended', 'declined', 'missed', 'failed'],
       default: 'initiated',
       required: true,
       index: true,
@@ -82,6 +82,10 @@ callSchema.index({ recipient: 1, createdAt: -1 });
 
 // Compound index for call status queries
 callSchema.index({ status: 1, createdAt: -1 });
+
+// TTL index to automatically delete call logs after 24 hours
+// MongoDB will automatically delete documents where createdAt is older than 24 hours
+callSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 }); // 24 hours = 86400 seconds
 
 // Pre-save hook to calculate duration when call ends
 callSchema.pre('save', function (next) {

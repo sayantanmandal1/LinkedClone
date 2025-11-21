@@ -133,7 +133,8 @@ export function useSocket(): UseSocketReturn {
 
       // Connection event handlers
       socket.on('connect', () => {
-        console.log('[Socket] Connected successfully');
+        console.log('[Socket] Connected successfully - Socket ID:', socket.id);
+        console.log('[Socket] Connection state - Connected:', socket.connected, 'Disconnected:', socket.disconnected);
         setConnectionState('connected');
         setReconnectAttempts(0);
         setError(null);
@@ -154,7 +155,8 @@ export function useSocket(): UseSocketReturn {
       });
 
       socket.on('disconnect', (reason) => {
-        console.log('[Socket] Disconnected:', reason);
+        console.log('[Socket] Disconnected - Reason:', reason, 'Socket ID:', socket.id);
+        console.log('[Socket] Connection state - Connected:', socket.connected, 'Disconnected:', socket.disconnected);
         setConnectionState('disconnected');
         isAuthenticatedRef.current = false;
 
@@ -191,7 +193,8 @@ export function useSocket(): UseSocketReturn {
 
       // Authentication event handlers
       socket.on('authenticated', (data) => {
-        console.log('[Socket] Authentication successful:', data);
+        console.log('[Socket] Authentication successful - User ID:', data?.userId, 'Socket ID:', socket.id);
+        console.log('[Socket] Connection state - Connected:', socket.connected, 'Authenticated:', true);
         isAuthenticatedRef.current = true;
         setReconnectAttempts(0); // Reset attempts on successful auth
       });
