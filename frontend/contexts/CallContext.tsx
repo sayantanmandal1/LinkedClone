@@ -94,12 +94,75 @@ export function CallProvider({ children }: CallProviderProps) {
   const qualityMonitorRef = useRef<NodeJS.Timeout | null>(null);
   const currentCallRef = useRef<{ callId: string; recipientId: string } | null>(null);
   const isInitiatingRef = useRef(false);
+  
+  // Audio refs for ringtones
+  const outgoingRingtoneRef = useRef<HTMLAudioElement | null>(null);
+  const incomingRingtoneRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio elements
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Outgoing ringtone (for caller - ringing sound)
+      outgoingRingtoneRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      outgoingRingtoneRef.current.loop = true;
+      
+      // Incoming ringtone (for recipient - phone ringing)
+      incomingRingtoneRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2871/2871-preview.mp3');
+      incomingRingtoneRef.current.loop = true;
+    }
+    
+    return () => {
+      // Cleanup audio on unmount
+      if (outgoingRingtoneRef.current) {
+        outgoingRingtoneRef.current.pause();
+        outgoingRingtoneRef.current = null;
+      }
+      if (incomingRingtoneRef.current) {
+        incomingRingtoneRef.current.pause();
+        incomingRingtoneRef.current = null;
+      }
+    };
+  }, []);
+
+  // Helper functions for ringtones
+  const playOutgoingRingtone = useCallback(() => {
+    if (outgoingRingtoneRef.current) {
+      outgoingRingtoneRef.current.play().catch(err => {
+        console.error('[Call] Failed to play outgoing ringtone:', err);
+      });
+    }
+  }, []);
+
+  const stopOutgoingRingtone = useCallback(() => {
+    if (outgoingRingtoneRef.current) {
+      outgoingRingtoneRef.current.pause();
+      outgoingRingtoneRef.current.currentTime = 0;
+    }
+  }, []);
+
+  const playIncomingRingtone = useCallback(() => {
+    if (incomingRingtoneRef.current) {
+      incomingRingtoneRef.current.play().catch(err => {
+        console.error('[Call] Failed to play incoming ringtone:', err);
+      });
+    }
+  }, []);
+
+  const stopIncomingRingtone = useCallback(() => {
+    if (incomingRingtoneRef.current) {
+      incomingRingtoneRef.current.pause();
+      incomingRingtoneRef.current.currentTime = 0;
+    }
+  }, []);
 
   // Start call duration timer
   const startCallTimer = useCallback(() => {
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
     }
+    
+    // Reset duration to 0
+    setCallState((prev) => ({ ...prev, callDuration: 0 }));
 
     setCallState((prev) => ({ ...prev, callDuration: 0 }));
 
@@ -554,12 +617,11 @@ export function CallProvider({ children }: CallProviderProps) {
 
     console.log('[Call] Setting up socket event listeners');
 
-    // Incoming call
+    // Incoming call (without offer initially)
     const handleIncomingCall = async (data: {
       callId: string;
       callType: CallType;
       caller: User;
-      offer: RTCSessionDescriptionInit;
     }) => {
       console.log('[Call] Incoming call from', data.caller.name);
 
@@ -610,10 +672,7 @@ export function CallProvider({ children }: CallProviderProps) {
           }
         });
 
-        // Set remote description (offer)
-        await webrtcService.current.setRemoteDescription(data.offer);
-
-        // Update state to ringing
+        // Update state to ringing (offer will come via webrtc:offer event)
         setCallState({
           callId: data.callId,
           callType: data.callType,
@@ -631,6 +690,8 @@ export function CallProvider({ children }: CallProviderProps) {
 
         // Start timeout
         startCallTimeout();
+        
+        console.log('[Call] Waiting for WebRTC offer...');
       } catch (error) {
         console.error('[Call] Failed to handle incoming call:', error);
         socket.emit('call:decline', { callId: data.callId });
@@ -733,6 +794,25 @@ export function CallProvider({ children }: CallProviderProps) {
       endCall();
     };
 
+    // WebRTC offer received (for incoming calls)
+    const handleWebRTCOffer = async (data: {
+      callId: string;
+      callerId: string;
+      offer: RTCSessionDescriptionInit;
+    }) => {
+      console.log('[Call] Received WebRTC offer for call:', data.callId);
+      
+      try {
+        // Set remote description (offer)
+        await webrtcService.current.setRemoteDescription(data.offer);
+        console.log('[Call] Remote description set, ready to accept call');
+      } catch (error) {
+        console.error('[Call] Failed to set remote description:', error);
+        showToast('Failed to process incoming call', 'error');
+        endCall();
+      }
+    };
+
     // ICE candidate
     const handleIceCandidate = async (data: {
       candidate: RTCIceCandidateInit;
@@ -794,6 +874,7 @@ export function CallProvider({ children }: CallProviderProps) {
     socket.on('call:ended', handleCallEnded);
     socket.on('call:timeout', handleCallTimeout);
     socket.on('call:error', handleCallError);
+    socket.on('webrtc:offer', handleWebRTCOffer);
     socket.on('webrtc:ice-candidate', handleIceCandidate);
 
     // Cleanup
@@ -805,6 +886,7 @@ export function CallProvider({ children }: CallProviderProps) {
       socket.off('call:ended', handleCallEnded);
       socket.off('call:timeout', handleCallTimeout);
       socket.off('call:error', handleCallError);
+      socket.off('webrtc:offer', handleWebRTCOffer);
       socket.off('webrtc:ice-candidate', handleIceCandidate);
     };
   }, [socket, user, callState.callStatus, startCallTimeout, clearCallTimeout, startCallTimer, endCall, showToast]);
