@@ -102,8 +102,9 @@ export function CallProvider({ children }: CallProviderProps) {
 
   // Initialize audio elements with proper preloading and fallback
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('[Call] Initializing audio elements');
+    // Only initialize audio if user is logged in
+    if (typeof window !== 'undefined' && user) {
+      console.log('[Call] Initializing audio elements for user:', user._id);
       
       // Outgoing ringtone (for caller - ringing sound)
       const outgoingAudio = new Audio('/sounds/ringing.mp3');
@@ -233,7 +234,7 @@ export function CallProvider({ children }: CallProviderProps) {
         delete (window as any).testCallAudio;
       }
     };
-  }, []);
+  }, [user]); // Add user dependency
 
   // Helper functions for ringtones
   const playOutgoingRingtone = useCallback(() => {
