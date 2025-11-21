@@ -93,6 +93,7 @@ export function CallProvider({ children }: CallProviderProps) {
   const callTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const qualityMonitorRef = useRef<NodeJS.Timeout | null>(null);
   const currentCallRef = useRef<{ callId: string; recipientId: string } | null>(null);
+  const isInitiatingRef = useRef(false);
 
   // Start call duration timer
   const startCallTimer = useCallback(() => {
@@ -189,10 +190,13 @@ export function CallProvider({ children }: CallProviderProps) {
       return;
     }
 
-    if (callState.callStatus !== 'idle') {
+    if (callState.callStatus !== 'idle' || isInitiatingRef.current) {
       showToast('You are already on a call', 'warning');
       return;
     }
+
+    // Set flag to prevent duplicate calls
+    isInitiatingRef.current = true;
 
     // Check recipient presence before initiating call
     try {
@@ -300,6 +304,11 @@ export function CallProvider({ children }: CallProviderProps) {
       console.log('[Call] Call initiation request sent to server');
 
       console.log('[Call] Call initiated successfully');
+      
+      // Clear initiating flag after a short delay
+      setTimeout(() => {
+        isInitiatingRef.current = false;
+      }, 1000);
     } catch (error: any) {
       console.error('[Call] Failed to initiate call:', error);
       
