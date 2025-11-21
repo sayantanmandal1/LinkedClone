@@ -103,11 +103,11 @@ export function CallProvider({ children }: CallProviderProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Outgoing ringtone (for caller - ringing sound)
-      outgoingRingtoneRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      outgoingRingtoneRef.current = new Audio('/sounds/ringing.mp3');
       outgoingRingtoneRef.current.loop = true;
       
       // Incoming ringtone (for recipient - phone ringing)
-      incomingRingtoneRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2871/2871-preview.mp3');
+      incomingRingtoneRef.current = new Audio('/sounds/ringing.mp3');
       incomingRingtoneRef.current.loop = true;
     }
     
@@ -220,16 +220,44 @@ export function CallProvider({ children }: CallProviderProps) {
       console.log('[Call] Call timeout - no answer');
       
       if (callState.callStatus === 'calling' || callState.callStatus === 'ringing') {
+        // Reset initiating flag on timeout
+        isInitiatingRef.current = false;
+        
+        // Clear current call ref
+        currentCallRef.current = null;
+        
+        // Stop all ringtones
+        stopIncomingRingtone();
+        stopOutgoingRingtone();
+        
         showToast('No answer', 'warning', 3000);
-        endCall();
         
         // Notify backend about timeout
         if (socket && callState.callId) {
           socket.emit('call:timeout', { callId: callState.callId });
         }
+        
+        // Cleanup WebRTC resources
+        webrtcService.current.cleanup();
+        
+        // Reset state
+        setCallState({
+          callId: null,
+          callType: null,
+          callStatus: 'idle',
+          localStream: null,
+          remoteStream: null,
+          isMuted: false,
+          isVideoEnabled: true,
+          caller: null,
+          recipient: null,
+          error: null,
+          callDuration: 0,
+          connectionQuality: 'unknown',
+        });
       }
     }, 30000); // 30 seconds
-  }, [callState.callStatus, callState.callId, socket]);
+  }, [callState.callStatus, callState.callId, socket, stopIncomingRingtone, stopOutgoingRingtone]);
 
   // Clear call timeout
   const clearCallTimeout = useCallback(() => {
@@ -322,9 +350,39 @@ export function CallProvider({ children }: CallProviderProps) {
           startCallTimer();
           startQualityMonitoring();
         } else if (state === 'failed') {
-          console.log('[Call] Connection failed after reconnection attempts');
+          console.error('[Call] WebRTC connection failed after reconnection attempts');
+          
+          // Reset initiating flag
+          isInitiatingRef.current = false;
+          
+          // Clear current call ref
+          currentCallRef.current = null;
+          
+          // Stop all ringtones
+          stopIncomingRingtone();
+          stopOutgoingRingtone();
+          
           showToast('Call connection failed. Please check your internet connection and try again.', 'error', 5000);
-          endCall();
+          
+          // Cleanup and reset state
+          clearCallTimeout();
+          stopQualityMonitoring();
+          webrtcService.current.cleanup();
+          
+          setCallState({
+            callId: null,
+            callType: null,
+            callStatus: 'idle',
+            localStream: null,
+            remoteStream: null,
+            isMuted: false,
+            isVideoEnabled: true,
+            caller: null,
+            recipient: null,
+            error: 'Connection failed',
+            callDuration: 0,
+            connectionQuality: 'unknown',
+          });
         } else if (state === 'disconnected') {
           console.log('[Call] Connection disconnected, waiting for reconnection...');
           showToast('Connection lost, attempting to reconnect...', 'warning', 3000);
@@ -335,8 +393,12 @@ export function CallProvider({ children }: CallProviderProps) {
         console.log('[Call] ICE connection state:', state);
         
         if (state === 'failed') {
-          console.log('[Call] ICE connection failed, attempting reconnection');
+          console.error('[Call] ICE connection failed, attempting reconnection');
           // WebRTC will automatically attempt ICE restart
+        } else if (state === 'disconnected') {
+          console.warn('[Call] ICE connection disconnected');
+        } else if (state === 'closed') {
+          console.log('[Call] ICE connection closed');
         }
       });
 
@@ -356,6 +418,9 @@ export function CallProvider({ children }: CallProviderProps) {
         connectionQuality: 'unknown',
       });
 
+      // Play outgoing ringtone
+      playOutgoingRingtone();
+
       // Send call initiation to server (without offer)
       socket.emit('call:initiate', {
         recipientId,
@@ -374,6 +439,11 @@ export function CallProvider({ children }: CallProviderProps) {
       }, 1000);
     } catch (error: any) {
       console.error('[Call] Failed to initiate call:', error);
+      console.error('[Call] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
       
       let errorMessage = 'Failed to start call';
       let errorDetails = '';
@@ -400,20 +470,39 @@ export function CallProvider({ children }: CallProviderProps) {
         showToast(errorMessage, 'error', 5000);
       }
       
+      // Reset initiating flag to allow retry
+      isInitiatingRef.current = false;
+      
       // Clear current call ref
       currentCallRef.current = null;
+      
+      // Stop all ringtones
+      stopIncomingRingtone();
+      stopOutgoingRingtone();
+      
+      // Cleanup timers
+      clearCallTimeout();
+      stopQualityMonitoring();
 
-      setCallState((prev) => ({
-        ...prev,
-        error: errorMessage,
-        callStatus: 'idle',
-        connectionQuality: 'unknown',
-      }));
-
-      // Cleanup
+      // Cleanup WebRTC resources
       webrtcService.current.cleanup();
+
+      setCallState({
+        callId: null,
+        callType: null,
+        callStatus: 'idle',
+        localStream: null,
+        remoteStream: null,
+        isMuted: false,
+        isVideoEnabled: true,
+        caller: null,
+        recipient: null,
+        error: errorMessage,
+        callDuration: 0,
+        connectionQuality: 'unknown',
+      });
     }
-  }, [user, socket, isConnected, callState.callStatus, startCallTimeout, clearCallTimeout, startCallTimer, showToast]);
+  }, [user, socket, isConnected, callState.callStatus, startCallTimeout, clearCallTimeout, startCallTimer, playOutgoingRingtone, showToast]);
 
   /**
    * Accept an incoming call
@@ -432,6 +521,12 @@ export function CallProvider({ children }: CallProviderProps) {
     try {
       console.log('[Call] Accepting call');
 
+      // Verify that remote description is already set from the offer
+      const peerConnection = webrtcService.current.getPeerConnection();
+      if (!peerConnection || !peerConnection.remoteDescription) {
+        throw new Error('Remote description not set - offer not received');
+      }
+
       // Get local media stream
       const constraints = {
         audio: true,
@@ -440,14 +535,13 @@ export function CallProvider({ children }: CallProviderProps) {
 
       const localStream = await webrtcService.current.acquireLocalStream(constraints);
 
-      // The peer connection and remote description should already be set from the offer
-      // Create answer
-      const answer = await webrtcService.current.createAnswer(
-        // The offer was already set when we received call:ringing
-        {} as RTCSessionDescriptionInit
-      );
+      // Create answer (remote description is already set from webrtc:offer event)
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      
+      console.log('[Call] Answer created and set as local description');
 
-      // Update state
+      // Update state to connected
       setCallState((prev) => ({
         ...prev,
         callStatus: 'connected',
@@ -456,11 +550,14 @@ export function CallProvider({ children }: CallProviderProps) {
         isVideoEnabled: callState.callType === 'video',
       }));
 
-      // Send answer to caller
+      // Send answer to caller via backend
       socket.emit('call:accept', {
         callId: callState.callId,
         answer,
       });
+
+      // Stop incoming ringtone
+      stopIncomingRingtone();
 
       clearCallTimeout();
       startCallTimer();
@@ -469,6 +566,11 @@ export function CallProvider({ children }: CallProviderProps) {
       console.log('[Call] Call accepted successfully');
     } catch (error: any) {
       console.error('[Call] Failed to accept call:', error);
+      console.error('[Call] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
       
       let errorMessage = 'Failed to accept call';
       let errorDetails = '';
@@ -496,9 +598,42 @@ export function CallProvider({ children }: CallProviderProps) {
       }
       
       // Decline the call if we can't accept it
-      declineCall();
+      if (socket && callState.callId) {
+        socket.emit('call:decline', {
+          callId: callState.callId,
+        });
+      }
+
+      // Clear current call ref
+      currentCallRef.current = null;
+
+      // Stop all ringtones
+      stopIncomingRingtone();
+      stopOutgoingRingtone();
+
+      // Cleanup timers
+      clearCallTimeout();
+      stopQualityMonitoring();
+      
+      // Cleanup WebRTC resources
+      webrtcService.current.cleanup();
+
+      setCallState({
+        callId: null,
+        callType: null,
+        callStatus: 'idle',
+        localStream: null,
+        remoteStream: null,
+        isMuted: false,
+        isVideoEnabled: true,
+        caller: null,
+        recipient: null,
+        error: errorMessage,
+        callDuration: 0,
+        connectionQuality: 'unknown',
+      });
     }
-  }, [socket, user, callState.callStatus, callState.callType, callState.callId, clearCallTimeout, startCallTimer, showToast]);
+  }, [socket, user, callState.callStatus, callState.callType, callState.callId, clearCallTimeout, startCallTimer, startQualityMonitoring, stopIncomingRingtone, showToast]);
 
   /**
    * Decline an incoming call
@@ -515,6 +650,13 @@ export function CallProvider({ children }: CallProviderProps) {
         callId: callState.callId,
       });
     }
+
+    // Clear current call ref
+    currentCallRef.current = null;
+
+    // Stop ringtones
+    stopIncomingRingtone();
+    stopOutgoingRingtone();
 
     // Cleanup
     clearCallTimeout();
@@ -535,7 +677,7 @@ export function CallProvider({ children }: CallProviderProps) {
       callDuration: 0,
       connectionQuality: 'unknown',
     });
-  }, [socket, callState.callId, clearCallTimeout, stopQualityMonitoring]);
+  }, [socket, callState.callId, clearCallTimeout, stopQualityMonitoring, stopIncomingRingtone, stopOutgoingRingtone]);
 
   /**
    * End an active call
@@ -549,8 +691,15 @@ export function CallProvider({ children }: CallProviderProps) {
       });
     }
 
+    // Reset initiating flag
+    isInitiatingRef.current = false;
+
     // Clear current call ref to stop ICE candidate sending
     currentCallRef.current = null;
+
+    // Stop ringtones
+    stopIncomingRingtone();
+    stopOutgoingRingtone();
 
     // Stop timers
     stopCallTimer();
@@ -574,7 +723,7 @@ export function CallProvider({ children }: CallProviderProps) {
       callDuration: 0,
       connectionQuality: 'unknown',
     });
-  }, [socket, callState.callId, stopCallTimer, clearCallTimeout, stopQualityMonitoring]);
+  }, [socket, callState.callId, stopCallTimer, clearCallTimeout, stopQualityMonitoring, stopIncomingRingtone, stopOutgoingRingtone]);
 
   /**
    * Toggle microphone mute
@@ -603,8 +752,12 @@ export function CallProvider({ children }: CallProviderProps) {
     try {
       await webrtcService.current.switchCamera();
       showToast('Camera switched', 'success', 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('[Call] Failed to switch camera:', error);
+      console.error('[Call] Error details:', {
+        name: error?.name,
+        message: error?.message,
+      });
       showToast('Failed to switch camera', 'error');
     }
   }, [showToast]);
@@ -663,9 +816,36 @@ export function CallProvider({ children }: CallProviderProps) {
           console.log('[Call] Connection state:', state);
           
           if (state === 'failed') {
-            console.log('[Call] Connection failed after reconnection attempts');
+            console.error('[Call] WebRTC connection failed after reconnection attempts');
+            
+            // Clear current call ref
+            currentCallRef.current = null;
+            
+            // Stop all ringtones
+            stopIncomingRingtone();
+            stopOutgoingRingtone();
+            
             showToast('Call connection failed. Please check your internet connection and try again.', 'error', 5000);
-            endCall();
+            
+            // Cleanup and reset state
+            clearCallTimeout();
+            stopQualityMonitoring();
+            webrtcService.current.cleanup();
+            
+            setCallState({
+              callId: null,
+              callType: null,
+              callStatus: 'idle',
+              localStream: null,
+              remoteStream: null,
+              isMuted: false,
+              isVideoEnabled: true,
+              caller: null,
+              recipient: null,
+              error: 'Connection failed',
+              callDuration: 0,
+              connectionQuality: 'unknown',
+            });
           } else if (state === 'disconnected') {
             console.log('[Call] Connection disconnected, waiting for reconnection...');
             showToast('Connection lost, attempting to reconnect...', 'warning', 3000);
@@ -688,12 +868,31 @@ export function CallProvider({ children }: CallProviderProps) {
           connectionQuality: 'unknown',
         });
 
+        // Play incoming ringtone
+        playIncomingRingtone();
+
         // Start timeout
         startCallTimeout();
         
         console.log('[Call] Waiting for WebRTC offer...');
-      } catch (error) {
+      } catch (error: any) {
         console.error('[Call] Failed to handle incoming call:', error);
+        console.error('[Call] Error details:', {
+          name: error?.name,
+          message: error?.message,
+          stack: error?.stack,
+        });
+        
+        // Clear current call ref on error
+        currentCallRef.current = null;
+        
+        // Stop all ringtones
+        stopIncomingRingtone();
+        stopOutgoingRingtone();
+        
+        // Cleanup WebRTC resources
+        webrtcService.current.cleanup();
+        
         socket.emit('call:decline', { callId: data.callId });
       }
     };
@@ -702,9 +901,9 @@ export function CallProvider({ children }: CallProviderProps) {
     const handleCallAccepted = async (data: {
       callId: string;
       answer: RTCSessionDescriptionInit;
-      recipient: User;
+      recipientId: string;
     }) => {
-      console.log('[Call] Call accepted by', data.recipient.name);
+      console.log('[Call] Call accepted by recipient');
 
       try {
         // Set remote description (answer)
@@ -713,16 +912,55 @@ export function CallProvider({ children }: CallProviderProps) {
         setCallState((prev) => ({
           ...prev,
           callStatus: 'connected',
-          recipient: data.recipient,
         }));
+
+        // Stop outgoing ringtone
+        stopOutgoingRingtone();
 
         clearCallTimeout();
         startCallTimer();
         startQualityMonitoring();
-      } catch (error) {
+      } catch (error: any) {
         console.error('[Call] Failed to handle call acceptance:', error);
+        console.error('[Call] Error details:', {
+          name: error?.name,
+          message: error?.message,
+          stack: error?.stack,
+        });
+        
+        // Reset initiating flag on error
+        isInitiatingRef.current = false;
+        
+        // Clear current call ref
+        currentCallRef.current = null;
+        
+        // Stop all ringtones
+        stopIncomingRingtone();
+        stopOutgoingRingtone();
+        
         showToast('Failed to establish call connection', 'error');
-        endCall();
+        
+        // Cleanup timers
+        clearCallTimeout();
+        stopQualityMonitoring();
+        
+        // Cleanup WebRTC resources
+        webrtcService.current.cleanup();
+        
+        setCallState({
+          callId: null,
+          callType: null,
+          callStatus: 'idle',
+          localStream: null,
+          remoteStream: null,
+          isMuted: false,
+          isVideoEnabled: true,
+          caller: null,
+          recipient: null,
+          error: 'Failed to establish connection',
+          callDuration: 0,
+          connectionQuality: 'unknown',
+        });
       }
     };
 
@@ -760,10 +998,47 @@ export function CallProvider({ children }: CallProviderProps) {
         startCallTimeout();
 
         console.log('[Call] Offer sent to recipient');
-      } catch (error) {
+      } catch (error: any) {
         console.error('[Call] Failed to create/send offer:', error);
+        console.error('[Call] Error details:', {
+          name: error?.name,
+          message: error?.message,
+          stack: error?.stack,
+        });
+        
+        // Reset initiating flag on error
+        isInitiatingRef.current = false;
+        
+        // Clear current call ref
+        currentCallRef.current = null;
+        
+        // Stop all ringtones
+        stopIncomingRingtone();
+        stopOutgoingRingtone();
+        
         showToast('Failed to establish call connection', 'error');
-        endCall();
+        
+        // Cleanup timers
+        clearCallTimeout();
+        stopQualityMonitoring();
+        
+        // Cleanup WebRTC resources
+        webrtcService.current.cleanup();
+        
+        setCallState({
+          callId: null,
+          callType: null,
+          callStatus: 'idle',
+          localStream: null,
+          remoteStream: null,
+          isMuted: false,
+          isVideoEnabled: true,
+          caller: null,
+          recipient: null,
+          error: 'Failed to create offer',
+          callDuration: 0,
+          connectionQuality: 'unknown',
+        });
       }
     };
 
@@ -806,10 +1081,44 @@ export function CallProvider({ children }: CallProviderProps) {
         // Set remote description (offer)
         await webrtcService.current.setRemoteDescription(data.offer);
         console.log('[Call] Remote description set, ready to accept call');
-      } catch (error) {
+      } catch (error: any) {
         console.error('[Call] Failed to set remote description:', error);
+        console.error('[Call] Error details:', {
+          name: error?.name,
+          message: error?.message,
+          stack: error?.stack,
+        });
+        
+        // Clear current call ref on error
+        currentCallRef.current = null;
+        
+        // Stop all ringtones
+        stopIncomingRingtone();
+        stopOutgoingRingtone();
+        
         showToast('Failed to process incoming call', 'error');
-        endCall();
+        
+        // Cleanup timers
+        clearCallTimeout();
+        stopQualityMonitoring();
+        
+        // Cleanup WebRTC resources
+        webrtcService.current.cleanup();
+        
+        setCallState({
+          callId: null,
+          callType: null,
+          callStatus: 'idle',
+          localStream: null,
+          remoteStream: null,
+          isMuted: false,
+          isVideoEnabled: true,
+          caller: null,
+          recipient: null,
+          error: 'Failed to process offer',
+          callDuration: 0,
+          connectionQuality: 'unknown',
+        });
       }
     };
 
@@ -821,8 +1130,12 @@ export function CallProvider({ children }: CallProviderProps) {
       
       try {
         await webrtcService.current.addIceCandidate(data.candidate);
-      } catch (error) {
+      } catch (error: any) {
         console.error('[Call] Failed to add ICE candidate:', error);
+        console.error('[Call] ICE candidate error details:', {
+          name: error?.name,
+          message: error?.message,
+        });
       }
     };
 
@@ -848,7 +1161,22 @@ export function CallProvider({ children }: CallProviderProps) {
       
       // Clean up call state if we were trying to initiate
       if (callState.callStatus === 'calling') {
+        // Reset initiating flag
+        isInitiatingRef.current = false;
+        
+        // Clear current call ref
+        currentCallRef.current = null;
+        
+        // Stop ringtones
+        stopOutgoingRingtone();
+        
+        // Cleanup timers
+        clearCallTimeout();
+        stopQualityMonitoring();
+        
+        // Cleanup WebRTC
         webrtcService.current.cleanup();
+        
         setCallState({
           callId: null,
           callType: null,
@@ -889,7 +1217,7 @@ export function CallProvider({ children }: CallProviderProps) {
       socket.off('webrtc:offer', handleWebRTCOffer);
       socket.off('webrtc:ice-candidate', handleIceCandidate);
     };
-  }, [socket, user, callState.callStatus, startCallTimeout, clearCallTimeout, startCallTimer, endCall, showToast]);
+  }, [socket, user, callState.callStatus, startCallTimeout, clearCallTimeout, startCallTimer, startQualityMonitoring, stopOutgoingRingtone, playIncomingRingtone, endCall, showToast]);
 
   // Cleanup on unmount
   useEffect(() => {

@@ -108,7 +108,7 @@ export class SocketService {
         await this.signalingService.handleCallInitiate(socket, this.io, this.userPresence, data);
       });
 
-      socket.on('call:accept', async (data: { callId: string }) => {
+      socket.on('call:accept', async (data: { callId: string; answer: RTCSessionDescriptionInit }) => {
         await this.signalingService.handleCallAccept(socket, this.io, this.userPresence, data);
       });
 

@@ -24,6 +24,7 @@ interface CallInitiateData {
  */
 interface CallAcceptData {
   callId: string;
+  answer: RTCSessionDescriptionInit;
 }
 
 /**
@@ -235,11 +236,16 @@ export class SignalingService {
         return;
       }
 
-      const { callId } = data;
+      const { callId, answer } = data;
 
       // Validate input
       if (!callId) {
         socket.emit('error', { message: 'Call ID is required' });
+        return;
+      }
+
+      if (!answer) {
+        socket.emit('error', { message: 'Answer is required' });
         return;
       }
 
@@ -279,12 +285,13 @@ export class SignalingService {
       // Update active call status
       activeCall.status = 'connected';
 
-      // Notify caller that call was accepted
+      // Notify caller that call was accepted with the answer
       const callerPresence = userPresence.get(activeCall.callerId);
       if (callerPresence && callerPresence.isOnline) {
         io.to(callerPresence.socketId).emit('call:accepted', {
           callId,
           recipientId: socket.userId,
+          answer,
         });
       }
 
