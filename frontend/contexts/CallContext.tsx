@@ -105,10 +105,12 @@ export function CallProvider({ children }: CallProviderProps) {
       // Outgoing ringtone (for caller - ringing sound)
       outgoingRingtoneRef.current = new Audio('/sounds/ringing.mp3');
       outgoingRingtoneRef.current.loop = true;
+      outgoingRingtoneRef.current.preload = 'auto';
       
       // Incoming ringtone (for recipient - phone ringing)
       incomingRingtoneRef.current = new Audio('/sounds/ringing.mp3');
       incomingRingtoneRef.current.loop = true;
+      incomingRingtoneRef.current.preload = 'auto';
     }
     
     return () => {
@@ -1159,16 +1161,17 @@ export function CallProvider({ children }: CallProviderProps) {
       
       showToast(errorMessage, 'error', duration);
       
+      // ALWAYS reset initiating flag on any call error
+      isInitiatingRef.current = false;
+      
       // Clean up call state if we were trying to initiate
-      if (callState.callStatus === 'calling') {
-        // Reset initiating flag
-        isInitiatingRef.current = false;
-        
+      if (callState.callStatus === 'calling' || callState.callStatus === 'ringing') {
         // Clear current call ref
         currentCallRef.current = null;
         
         // Stop ringtones
         stopOutgoingRingtone();
+        stopIncomingRingtone();
         
         // Cleanup timers
         clearCallTimeout();
