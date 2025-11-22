@@ -40,7 +40,7 @@ Create environment files for each workspace:
 NODE_ENV=development
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/linkedin-clone
-JWT_SECRET=your-jwt-secret-key
+JWT_SECRET=your-jwt-secret--key
 ```
 
 **Frontend (.env.local in frontend/ directory):**
