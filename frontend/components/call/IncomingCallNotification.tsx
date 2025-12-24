@@ -165,7 +165,7 @@ export default function IncomingCallNotification({
             className="flex flex-col items-center gap-3 group"
             aria-label="Accept call"
           >
-            <div className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 active:bg-green-700 flex items-center justify-center shadow-lg transition-all duration-200 group-hover:scale-110 animate-pulse-slow">
+            <div className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 active:bg-green-700 flex items-center justify-center shadow-lg transition-all duration-200 group-hover:scale-110 animate-pulse">
               <svg
                 className="w-10 h-10 text-white"
                 fill="none"
@@ -184,21 +184,6 @@ export default function IncomingCallNotification({
           </button>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes pulse-slow {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.8;
-          }
-        }
-
-        .animate-pulse-slow {
-          animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-      `}</style>
     </>
   );
 }

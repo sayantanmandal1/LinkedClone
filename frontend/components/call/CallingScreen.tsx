@@ -111,24 +111,6 @@ export default function CallingScreen({
         </Button>
         <p className="text-white text-center mt-4 text-sm opacity-75">Cancel</p>
       </div>
-
-      <style jsx>{`
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.5;
-          }
-        }
-
-        @keyframes ping {
-          75%, 100% {
-            transform: scale(1.5);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }
